@@ -1,0 +1,286 @@
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body {
+    min-height: 100vh;
+    width: 100%;
+    background: linear-gradient(125deg, #291f01, #000000, #1a1301);
+    display: flex;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    color: #ffffff;
+}
+
+/* ------------------------------
+    SECCION DE INICIO DE SESION
+    ------------------------------
+*/
+main.login-section {
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Card del formulario */
+.login-frame {
+    display: none;
+    flex-direction: row;
+    background-color: #1f1f1f;
+    width: 100%;
+    max-width: 1500px;
+    min-height: 620px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* Parte Izquierda (Logo) */
+.image-frame {
+    padding: 40px;
+    width: 45%;
+    background-color: #000000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Contenedor del logo del PES */
+.pes-logo {
+    width: 100%;
+    max-width: 380px;
+}
+
+/* Imagen del logo del PES */
+.pes-logo img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Parte Derecha (Formulario) */
+.form-frame {
+    padding: 40px 30px;
+    width: 55%;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Contenedor del titulo del formulario */
+.form-text {
+    width: 100%; /* Aprovecha todo el espacio disponible */
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+}
+
+/* Titulo del formulario */
+.form-title h1 {
+    font-size:clamp(2rem, 2vw, 3rem);
+    font-family: "League Spartan";
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Resaltado del titulo del formulario */
+.form-title-color {
+    color: #ffde59
+}
+
+/* Parrafo del inicio de sesion */
+.form-title p {
+    font-family: 'GlacialIndifference';
+    color: #ffffff;
+    font-size: clamp(1.1rem, 2vw, 2.3rem);
+}
+
+/* Contenedor de los inputs y el registro del formulario */
+.form-information {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Contenedor de inputs */
+.form-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* Contenedor de los labels e inputs */
+.labels-and-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+}
+
+/* labels e inputs (organizacion) */
+.user-name-inputs,
+.verify-password-inputs,
+.user-mail-inputs,
+.user-password-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Estilos de los labels */
+label {
+    font-family: "GlacialIndifference";
+    font-size: clamp(1rem, 2vw, 1.5rem);
+    color: #ffffff;
+}
+
+/* Estilos de los inputs */
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+    width: 80%;
+    height: 44px;
+    padding: 0 14px;
+    background-color: #ffffff;
+    border: 1px solid #3d3d3d;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus {
+    border-color: #e2f500;
+}
+
+/* Enlace y separador */
+.register-option {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 4px;
+}
+
+/* Linea separadora de la opcion del registro */
+.register-option hr {
+    border: 0;
+    height: 4px;
+    width: 80%;
+    background-color: #ffffff;
+}
+
+/* Opcion para registrarse una cuenta */
+.register-option p {
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    color: #ffffff;
+}
+
+/* Link al formulario de registro */
+.register-option a {
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Animacion del link al registro */
+.register-option a:hover {
+    text-decoration: underline;
+}
+
+/* Botón para ingresar (estilos) */
+.enter-button input[type="submit"] {
+    width: 70%;
+    height: 46px;
+    background-color: transparent;
+    color: white;
+    border: 2px solid;
+    border-color: #e2f500;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s;
+}
+
+/* Animacion del boton de ingresar */
+.enter-button input[type="submit"]:hover {
+    background-color: #eeff00;
+    color: #000000;
+    box-shadow: #eeff00 0px 0px 12px;
+
+}
+
+/* --------------------------
+    SECCION DEL REGISTRO
+    -------------------------
+*/
+.register-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* Formulario del registro */
+.register-frame {
+    display: flex;
+    flex-direction: row;
+    background-color: #1f1f1f;
+    width: 100%;
+    max-width: 1500px;
+    min-height: 620px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   MEDIA QUERIES (ADAPTACIÓN RESPONSIVE)
+   ========================================== */
+
+/* Dispositivos Móviles y Tablets (Menos de 768px) */
+@media (max-width: 768px) {
+    .login-frame, .register-frame {
+        flex-direction: column; /* Cambia a vertical */
+        max-width: 420px; /* Tamaño tipo tarjeta para móviles */
+    }
+
+    .image-frame {
+        width: 100%;
+        padding: 30px 20px;
+    }
+
+    .pes-logo {
+        max-width: 180px; /* Achica el logo en móviles */
+    }
+
+    .form-frame {
+        width: 100%;
+        padding: 30px 20px;
+    }
+
+    .form-title h1 {
+        font-size: 1.5rem;
+    }
+
+    input[type="email"],
+    input[type="text"],
+    input[type="password"] {
+        width: 100%;
+        height: 35px;
+    }
+}
+
+/* FUENTES */
+@font-face {
+    font-family: 'Glacialindifference';
+    src: url(/Source/Fonts/GlacialIndifference-Regular.otf) format("woff2");
+}
+@font-face {
+    font-family: 'GlacialIndifferenceBold';
+    src: url(/Source/Fonts/GlacialIndifference-Bold.otf) format("woff2");
+}
