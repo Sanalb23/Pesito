@@ -12,6 +12,14 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "El usuario ya existe" });
         }
 
+        if (password.length < 8 || password.length > 12) {
+            return res.status(400).json({ message: "La contraseña debe tener entre 8 y 12 caracteres" });
+        }
+
+        if (nickname.includes(' ')) {
+            return res.status(400).json({ message: "El nickname no debe contener espacios" });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await usersModel.create(nickname, email, hashedPassword);
 
