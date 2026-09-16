@@ -4,14 +4,6 @@ const createToken = (user) => {
     return jwt.sign({ id: user.id }, process.env.JWT_KEY, { expiresIn: "1h" });
 };
 
-const createVerificationToken = (user) => {
-    return jwt.sign(
-        { id: user.id, purpose: "email-verification" },
-        process.env.JWT_VERIFICATION_KEY,
-        { expiresIn: "7d" }
-    );
-};
-
 const verifyToken = (req, res, next) => {
     const token = req.cookies.access_token;
     if (!token) {
@@ -28,6 +20,5 @@ const verifyToken = (req, res, next) => {
 
 module.exports = {
     createToken,
-    verifyToken,
-    createVerificationToken
+    verifyToken
 };
