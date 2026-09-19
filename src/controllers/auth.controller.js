@@ -57,9 +57,24 @@ const login = async (req, res) => {
     }
 };
 
+const logout = async (req, res) => {
+    try {
+        res.clearCookie('access_token', {
+            httpOnly: true,
+            // Quitar comentario para produccion cuando use https
+            // secure: true,
+            sameSite: 'strict',
+        });
+        res.status(200).json({ message: 'Se ha cerrado sesión correctamente' });
+    } catch (error) {
+        res.status(500).json({ error: "Error al cerrar sesión" });
+    }
+}
+
 module.exports = {
     register,
-    login
+    login,
+    logout
 };
 
 function setAccessToken(res, user) {
