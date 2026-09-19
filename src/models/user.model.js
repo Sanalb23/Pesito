@@ -12,7 +12,14 @@ const create = async (nickname, email, hashedPassword) => {
     return result.rows[0];
 };
 
+const findByNickname = async (nickname) => {
+    const query = 'SELECT id, nickname FROM users WHERE nickname ILIKE $1';
+    const result = await pool.query(query, ['%' + nickname + '%']);
+    return result.rows;
+};
+
 module.exports = {
     findByEmail,
     create,
+    findByNickname
 };
