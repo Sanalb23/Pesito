@@ -10,9 +10,24 @@ const create = async (req, res) => {
     }
 };
 
-const getMatchesByUserId = async (req, res) => {
+const getMyMatches = async (req, res) => {
     try {
         const userId = req.user.id;
+        const matches = await matchModel.getMatchesByUserId(userId);
+        res.status(200).json(matches);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los partidos" });
+    }
+};
+
+const getMatchesByUserId = async (req, res) => {
+    try {
+        const userId = Number(req.params.userId);
+
+        if (isNaN(userId) || userId <= 0) {
+            return res.status(400).json({ error: "Usuario no valido" });
+        }
+
         const matches = await matchModel.getMatchesByUserId(userId);
         res.status(200).json(matches);
     } catch (error) {
@@ -37,6 +52,7 @@ const getMatchData = async (req, res) => {
 
 module.exports = {
     create,
+    getMyMatches,
     getMatchesByUserId,
     getMatchData
 };
