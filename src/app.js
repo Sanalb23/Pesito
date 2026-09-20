@@ -9,9 +9,11 @@ app.use(cookieParser());
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
+const gameRoutes = require("./routes/game.routes");
 
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
+app.use("/games", gameRoutes);
 
 const PORT = process.env.PORT || 3000;
 
