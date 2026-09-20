@@ -82,7 +82,51 @@ const getMatchesByUserId = async (userId) => {
     return result.rows;
 };
 
+const getMatchData = async (matchId) => {
+    const query = `
+        SELECT 
+        m.id, 
+        m.home_user_id, 
+        COALESCE(u1.nickname, 'Invitado') as home_user_nickname, 
+        t1.name as home_team_name, 
+        m.away_user_id, 
+        COALESCE(u2.nickname, 'Invitado') as away_user_nickname, 
+        t2.name as away_team_name, 
+        m.home_goals, 
+        m.away_goals, 
+        m.date
+        FROM matches m
+        LEFT JOIN users u1 ON m.home_user_id = u1.id
+        LEFT JOIN users u2 ON m.away_user_id = u2.id
+        INNER JOIN teams_games tg1 ON m.home_team_game_id = tg1.id
+        INNER JOIN teams_games tg2 ON m.away_team_game_id = tg2.id
+        INNER JOIN teams t1 ON tg1.team_id = t1.id
+        INNER JOIN teams t2 ON tg2.team_id = t2.id
+        WHERE m.id = $1
+    `;
+
+    const result = await pool.query(query, [matchId]);
+
+    const matchData = result.rows[0];
+
+    if (!matchData) {
+        return null;
+    }
+
+    const statsQuery = `
+        SELECT * FROM match_stats WHERE match_id = $1
+    `;
+
+    const statsResult = await pool.query(statsQuery, [matchId]);
+    const statsData = statsResult.rows[0];
+
+    matchData.stats = statsData;
+
+    return matchData;
+};
+
 module.exports = {
     create,
-    getMatchesByUserId
+    getMatchesByUserId,
+    getMatchData
 };

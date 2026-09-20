@@ -20,7 +20,23 @@ const getMatchesByUserId = async (req, res) => {
     }
 };
 
+const getMatchData = async (req, res) => {
+    try {
+        const matchId = req.params.matchId;
+        const match = await matchModel.getMatchData(matchId);
+
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        res.status(200).json(match);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener el partido" });
+    }
+};
+
 module.exports = {
     create,
-    getMatchesByUserId
+    getMatchesByUserId,
+    getMatchData
 };
