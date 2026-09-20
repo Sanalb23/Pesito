@@ -60,6 +60,29 @@ const create = async (matchData) => {
     return matchResult.rows[0];
 };
 
+const getMatchesByUserId = async (userId) => {
+    const query = `
+        SELECT m.id, u1.id as home_user_id, COALESCE(u1.nickname, 'Invitado') as home_user_nickname,
+        t1.name as home_team_name,
+        u2.id as away_user_id, COALESCE(u2.nickname, 'Invitado') as away_user_nickname,
+        t2.name as away_team_name,
+        m.home_goals, m.away_goals, m.date
+        FROM matches m
+        LEFT JOIN users u1 ON m.home_user_id = u1.id
+        LEFT JOIN users u2 ON m.away_user_id = u2.id
+        INNER JOIN teams_games tg1 ON m.home_team_game_id = tg1.id
+        INNER JOIN teams_games tg2 ON m.away_team_game_id = tg2.id
+        INNER JOIN teams t1 ON tg1.team_id = t1.id
+        INNER JOIN teams t2 ON tg2.team_id = t2.id
+        WHERE m.home_user_id = $1 OR m.away_user_id = $1
+        ORDER BY date DESC;
+    `;
+
+    const result = await pool.query(query, [userId]);
+    return result.rows;
+};
+
 module.exports = {
-    create
+    create,
+    getMatchesByUserId
 };
