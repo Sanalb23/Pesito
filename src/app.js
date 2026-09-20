@@ -10,10 +10,12 @@ app.use(cookieParser());
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
 const gameRoutes = require("./routes/game.routes");
+const matchRoutes = require("./routes/match.routes");
 
 app.use("/auth", authRoutes);
 app.use("/user", userRoutes);
 app.use("/games", gameRoutes);
+app.use("/match", matchRoutes);
 
 const PORT = process.env.PORT || 3000;
 
