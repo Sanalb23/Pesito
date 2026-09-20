@@ -61,8 +61,7 @@ const logout = async (req, res) => {
     try {
         res.clearCookie('access_token', {
             httpOnly: true,
-            // Quitar comentario para produccion cuando use https
-            // secure: true,
+            secure: true,
             sameSite: 'strict',
         });
         res.status(200).json({ message: 'Se ha cerrado sesión correctamente' });
@@ -82,8 +81,7 @@ function setAccessToken(res, user) {
 
     res.cookie('access_token', token, {
         httpOnly: true,
-        // Quitar comentario para produccion cuando use https
-        // secure: true,
+        secure: true,
         sameSite: 'strict',
         maxAge: 1000 * 60 * 60
     });
