@@ -13,9 +13,9 @@ const gameRoutes = require("./routes/game.routes");
 const matchRoutes = require("./routes/match.routes");
 
 app.use("/auth", authRoutes);
-app.use("/user", userRoutes);
+app.use("/users", userRoutes);
 app.use("/games", gameRoutes);
-app.use("/match", matchRoutes);
+app.use("/matches", matchRoutes);
 
 const PORT = process.env.PORT || 3000;
 
