@@ -23,7 +23,7 @@ const create = async (matchData) => {
     if (stats) {
         const statsQuery = `
             INSERT INTO match_stats (
-                match_id, home_possession, away_possession, home_shots, away_shots,
+                match_id, home_possession, away_possession, home_shots, away_shots, home_shots_on_target, away_shots_on_target,
                 home_penalties, away_penalties, home_free_kicks, away_free_kicks,
                 home_corner_kicks, away_corner_kicks, home_offsides, away_offsides,
                 home_fouls, away_fouls, home_yellow_cards, away_yellow_cards,
@@ -40,6 +40,8 @@ const create = async (matchData) => {
             stats.awayPossession,
             stats.homeShots,
             stats.awayShots,
+            stats.homeShotsOnTarget,
+            stats.awayShotsOnTarget,
             stats.homePenalties,
             stats.awayPenalties,
             stats.homeFreeKicks,
