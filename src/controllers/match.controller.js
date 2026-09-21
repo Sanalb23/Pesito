@@ -3,6 +3,11 @@ const matchModel = require('../models/match.model');
 const create = async (req, res) => {
     try {
         const matchData = req.body;
+
+        if (!matchData.homeUserId && !matchData.awayUserId) {
+            return res.status(400).json({ error: "Debes especificar al menos un jugador registrado" });
+        }
+
         const newMatch = await matchModel.create(matchData);
         res.status(201).json(newMatch);
     } catch (error) {
