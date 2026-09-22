@@ -1,6 +1,7 @@
 const gameModel = require('../models/game.model');
 const leagueModel = require('../models/league.model');
 const teamGameModel = require('../models/team.game.model');
+const { parseId } = require('../utils/validators');
 
 const getGames = async (req, res) => {
     try {
@@ -13,7 +14,12 @@ const getGames = async (req, res) => {
 
 const getLeaguesByGame = async (req, res) => {
     try {
-        const { gameId } = req.params;
+        const gameId = parseId(req.params.gameId);
+
+        if (!gameId) {
+            return res.status(400).json({ error: "Juego no valido" });
+        }
+
         const leagues = await leagueModel.getLeaguesByGame(gameId);
         res.status(200).json(leagues);
     } catch (error) {
@@ -23,7 +29,13 @@ const getLeaguesByGame = async (req, res) => {
 
 const getTeamsByLeagueAndGame = async (req, res) => {
     try {
-        const { gameId, leagueId } = req.params;
+        const gameId = parseId(req.params.gameId);
+        const leagueId = parseId(req.params.leagueId);
+
+        if (!gameId || !leagueId) {
+            return res.status(400).json({ error: "Juego o liga no valida" });
+        }
+
         const teams = await teamGameModel.getTeamsByLeagueAndGame(gameId, leagueId);
         res.status(200).json(teams);
     } catch (error) {

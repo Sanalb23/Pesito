@@ -1,5 +1,6 @@
 const matchModel = require('../models/match.model');
 const userModel = require('../models/user.model');
+const { parseId } = require('../utils/validators');
 
 const create = async (req, res) => {
     try {
@@ -9,8 +10,11 @@ const create = async (req, res) => {
             return res.status(400).json({ error: "Debes especificar al menos un jugador registrado" });
         }
 
-        const homeUserPromise = matchData.homeUserId ? userModel.findById(matchData.homeUserId) : null;
-        const awayUserPromise = matchData.awayUserId ? userModel.findById(matchData.awayUserId) : null;
+        const homeUserId = parseId(matchData.homeUserId);
+        const awayUserId = parseId(matchData.awayUserId);
+
+        const homeUserPromise = homeUserId ? userModel.findById(homeUserId) : null;
+        const awayUserPromise = awayUserId ? userModel.findById(awayUserId) : null;
 
         const [homeUser, awayUser] = await Promise.all([homeUserPromise, awayUserPromise]);
 
@@ -41,9 +45,9 @@ const getMyMatches = async (req, res) => {
 
 const getMatchesByUserId = async (req, res) => {
     try {
-        const userId = Number(req.params.userId);
+        const userId = parseId(req.params.userId);
 
-        if (isNaN(userId) || userId <= 0) {
+        if (!userId) {
             return res.status(400).json({ error: "Usuario no valido" });
         }
 
@@ -56,7 +60,12 @@ const getMatchesByUserId = async (req, res) => {
 
 const getMatchData = async (req, res) => {
     try {
-        const matchId = req.params.matchId;
+        const matchId = parseId(req.params.matchId);
+
+        if (!matchId) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
         const match = await matchModel.getMatchData(matchId);
 
         if (!match) {
@@ -71,10 +80,10 @@ const getMatchData = async (req, res) => {
 
 const editMatch = async (req, res) => {
     try {
-        const matchId = Number(req.params.matchId);
+        const matchId = parseId(req.params.matchId);
         const matchData = req.body;
 
-        if (isNaN(matchId) || matchId <= 0) {
+        if (!matchId) {
             return res.status(400).json({ error: "Partido no valido" });
         }
 
@@ -101,10 +110,10 @@ const editMatch = async (req, res) => {
 
 const deleteMatch = async (req, res) => {
     try {
-        const matchId = Number(req.params.matchId);
+        const matchId = parseId(req.params.matchId);
         const userId = req.user.id;
 
-        if (isNaN(matchId) || matchId <= 0) {
+        if (!matchId) {
             return res.status(400).json({ error: "Partido no valido" });
         }
 
