@@ -127,8 +127,64 @@ const getMatchData = async (matchId) => {
     return matchData;
 };
 
+const editMatch = async (matchId, matchData) => {
+    const query = `
+        UPDATE matches
+        SET home_user_id = $1, away_user_id = $2,
+        home_team_game_id = $3, away_team_game_id = $4,
+        home_goals = $5, away_goals = $6,
+        date = $7
+        WHERE id = $8
+        RETURNING id;
+    `;
+
+    const matchResult = await pool.query(query, [matchData.homeUserId, matchData.awayUserId, matchData.homeTeamId, matchData.awayTeamId, matchData.homeGoals, matchData.awayGoals, matchData.date, matchId]);
+
+    const updatedMatchId = matchResult.rows[0].id;
+
+    const statsQuery = `
+        UPDATE match_stats
+        SET home_possession = $1, away_possession = $2, home_shots = $3, away_shots = $4,
+            home_shots_on_target = $5, away_shots_on_target = $6, home_penalties = $7, away_penalties = $8,
+            home_free_kicks = $9, away_free_kicks = $10, home_corner_kicks = $11, away_corner_kicks = $12,
+            home_offsides = $13, away_offsides = $14, home_fouls = $15, away_fouls = $16,
+            home_yellow_cards = $17, away_yellow_cards = $18, home_red_cards = $19, away_red_cards = $20
+        WHERE match_id = $21;
+    `;
+
+    await pool.query(statsQuery, [
+        matchData.stats.homePossession, matchData.stats.awayPossession,
+        matchData.stats.homeShots, matchData.stats.awayShots,
+        matchData.stats.homeShotsOnTarget, matchData.stats.awayShotsOnTarget,
+        matchData.stats.homePenalties, matchData.stats.awayPenalties,
+        matchData.stats.homeFreeKicks, matchData.stats.awayFreeKicks,
+        matchData.stats.homeCornerKicks, matchData.stats.awayCornerKicks,
+        matchData.stats.homeOffsides, matchData.stats.awayOffsides,
+        matchData.stats.homeFouls, matchData.stats.awayFouls,
+        matchData.stats.homeYellowCards, matchData.stats.awayYellowCards,
+        matchData.stats.homeRedCards, matchData.stats.awayRedCards,
+        matchId
+    ]);
+
+    return updatedMatchId;
+};
+
+const deleteMatch = async (matchId) => {
+    const query = `
+        DELETE FROM matches
+        WHERE id = $1;
+    `;
+
+    const result = await pool.query(query, [matchId]);
+
+    return result.rowCount > 0;
+};
+
+
 module.exports = {
     create,
     getMatchesByUserId,
-    getMatchData
+    getMatchData,
+    editMatch,
+    deleteMatch
 };

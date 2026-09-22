@@ -55,9 +55,72 @@ const getMatchData = async (req, res) => {
     }
 };
 
+const editMatch = async (req, res) => {
+    try {
+        const matchId = Number(req.params.matchId);
+        const matchData = req.body;
+
+        if (isNaN(matchId) || matchId <= 0) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
+        const match = await matchModel.getMatchData(matchId);
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        if (req.user.id !== match.home_user_id && req.user.id !== match.away_user_id) {
+            return res.status(403).json({ error: "No tienes permiso para editar este partido" });
+        }
+
+        const updatedMatch = await matchModel.editMatch(matchId, matchData);
+
+        if (!updatedMatch) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        res.status(200).json({ message: "Partido editado exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al editar el partido" });
+    }
+};
+
+const deleteMatch = async (req, res) => {
+    try {
+        const matchId = Number(req.params.matchId);
+        const userId = req.user.id;
+
+        if (isNaN(matchId) || matchId <= 0) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
+        const match = await matchModel.getMatchData(matchId);
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        if (userId !== match.home_user_id && userId !== match.away_user_id) {
+            return res.status(403).json({ error: "No tienes permiso para eliminar este partido" });
+        }
+
+        const deletedMatch = await matchModel.deleteMatch(matchId);
+
+        if (!deletedMatch) {
+            return res.status(404).json({ error: "No se pudo eliminar el partido" });
+        }
+
+        res.status(200).json({ message: "Partido eliminado exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al eliminar el partido" });
+    }
+};
+
+
 module.exports = {
     create,
     getMyMatches,
     getMatchesByUserId,
-    getMatchData
+    getMatchData,
+    editMatch,
+    deleteMatch
 };
