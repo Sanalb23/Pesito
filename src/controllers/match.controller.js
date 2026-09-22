@@ -1,4 +1,5 @@
 const matchModel = require('../models/match.model');
+const userModel = require('../models/user.model');
 
 const create = async (req, res) => {
     try {
@@ -6,6 +7,19 @@ const create = async (req, res) => {
 
         if (!matchData.homeUserId && !matchData.awayUserId) {
             return res.status(400).json({ error: "Debes especificar al menos un jugador registrado" });
+        }
+
+        const homeUserPromise = matchData.homeUserId ? userModel.findById(matchData.homeUserId) : null;
+        const awayUserPromise = matchData.awayUserId ? userModel.findById(matchData.awayUserId) : null;
+
+        const [homeUser, awayUser] = await Promise.all([homeUserPromise, awayUserPromise]);
+
+        if (matchData.homeUserId && !homeUser) {
+            return res.status(404).json({ error: "Jugador local no encontrado" });
+        }
+
+        if (matchData.awayUserId && !awayUser) {
+            return res.status(404).json({ error: "Jugador visitante no encontrado" });
         }
 
         const newMatch = await matchModel.create(matchData);
