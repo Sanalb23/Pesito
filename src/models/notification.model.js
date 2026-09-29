@@ -4,7 +4,8 @@ const pool = require('../config/db')
 const createNotification = async (senderId = null, receiverId, type, content = null, relatedId = null) => {
 
     const typeRelated = {
-        'friend_request': 'friend_request_id',
+        'friend_request': 'friendship_id',
+        'friend_confirmation': 'friendship_id',
         'match_request': 'match_id',
         'match_confirmation': 'match_id'
     }

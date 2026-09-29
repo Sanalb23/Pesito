@@ -12,12 +12,14 @@ const userRoutes = require("./routes/user.routes");
 const gameRoutes = require("./routes/game.routes");
 const matchRoutes = require("./routes/match.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const friendRoutes = require("./routes/friend.routes");
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/games", gameRoutes);
 app.use("/matches", matchRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/friends", friendRoutes);
 
 const PORT = process.env.PORT || 3000;
 
