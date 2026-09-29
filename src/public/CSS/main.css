@@ -1,0 +1,191 @@
+body {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+main {
+    width: 100%;
+    height: 100vh;
+    background-image: url(/src/public/Images/pesito-main-background.jfif);
+    background-repeat: no-repeat;
+    background-size: cover;
+    object-fit: cover;
+    background-position: center;
+}
+
+/* CONTENEDOR DEL MENU PRINCIPAL (EL REY DE TODO EL MENU DIGAMOS) */
+.main-menu-container {
+    display: flex;
+    justify-content: start;
+    flex-direction: column;
+    gap: 50px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+/* Estado mientras se desvanece (lo controla el JS) */
+.main-menu-container.fade-out {
+    opacity: 0;
+}
+
+/* EL CONTENEDR TANTO DEL LOGO, EL SEPARADOR, Y EL LOGO DEL NOMBRE DEL JUEGO */
+.logo-container {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100px;
+    background-color: black;
+    display: flex;
+    align-items: center;
+    padding: 20px 40px 20px 40px;
+    clip-path: polygon(0% 0%, 90% 0%, 60% 205%, 0% 100%);
+    gap: 40px;
+}
+
+.logo-container.hide {
+    width: 0;
+    display: none;
+}
+
+/* CONTENEDOR DEL LOGO */
+.logo {
+    height: 100px;
+}
+
+/* IMAGEN DEL LOGO DEL PES */
+.logo img {
+    width: 100%;
+    height: 100%;
+}
+
+/* LINEA SEPARADORA ENTRE EL LOGO DEL PES Y EL NOMBRE */ 
+.separate {
+    width: 10px;
+    height: 100%;
+    border-radius: 40px;
+    background-color: white; 
+}
+
+.game-name-logo {
+    height: 50px;
+}
+
+.game-name-logo img {
+    height: 100%
+}
+/* 
+-------------------------------------------------
+CONTENEDOR DE LAS OPCIONES DEL MENU
+------------------------------------------------ */
+
+.menu-options-container {
+    width: 800px;
+    height: 100%;
+}
+
+.menu-indicator {
+    margin-bottom: 30px;
+}
+
+.menu-indicator h1 {
+    font-family: sans-serif;
+    color: white;
+    font-weight: bold;
+    font-size: 1.8rem;
+    padding: 0 0 0 30px
+}
+
+.menu-indicator hr {
+    width: 600px;
+    left: 0;
+    height: 2px;
+    background: white;
+    border: none;
+    position: absolute;
+    border-radius: 50px;
+}
+
+.menu-options-list {
+    display: flex;
+    flex-direction: column;
+    width: 670px;
+    height: auto;
+    display: flex;
+    gap: 30px;
+}
+
+
+/* 
+-------------------------------------------------
+MENU PARA REGISTRAR PARTIDOS
+------------------------------------------------ */
+
+.match-register-menu {
+    width: 100%;
+    height: 100vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+/* La clase que agrega el JS para mostrar la seccion */
+.match-register-menu.onscreen {
+    display: flex;
+}
+
+.match-register-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+    width: 100%;
+    max-width: 600px;
+    background-color: rgba(31, 31, 31, 0.92);
+    padding: 40px;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    opacity: 1;
+    transition: opacity 0.4s ease;
+}
+
+/* Estado mientras se desvanece (lo controla el JS) */
+.match-register-content.fade-out {
+    opacity: 0;
+}
+
+.instructions h2 {
+    font-family: sans-serif;
+    color: white;
+    font-weight: 500;
+    font-size: 1.1rem;
+    line-height: 1.5;
+}
+
+.match-results {
+    width: 100%;
+}
+
+.match-results input[type="file"] {
+    width: 100%;
+    padding: 14px;
+    background-color: transparent;
+    border: 2px solid #e2f500;
+    border-radius: 8px;
+    color: White;
+    cursor: pointer;
+}
+
+.analize-button-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}

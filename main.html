@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Principal | Pesito</title>
+    <link rel="stylesheet" href="src/public/CSS/main.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/buttons.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/hints-slider.css">
+    <link rel="icon" type="image/png" href="src/public/Icons/proevolutionsoccerlogo.ico">
+</head>
+<body>
+    <main>
+        <section class="main-menu-container">
+            <div class="logo-container">
+                <div class="logo">
+                    <img src="src/public/Logos/proevolutionsoccer-fulllogo.png">
+                </div>
+                <div class="separate"></div>
+                <div class="platform-name">
+                    <div class="game-name-logo">
+                        <img src="src/public/Images/BIENVENIDO A PESITO.png">
+                    </div>
+                </div>
+            </div>
+
+            <div class="menu-options-container">
+                <div class="menu-indicator">
+                    <h1>MENU PRINCIPAL</h1>
+                    <hr>
+                </div>
+                <div class="menu-options-list">
+                    <button class="menu-buttons" id="match-register">REGISTRAR PARTIDO</button>
+                    <button class="menu-buttons" id="user-stats">MIS ESTADISTICAS</button>
+                    <button class="menu-buttons" id="user-friends">MIS AMIGOS</button>
+                    <button class="menu-buttons" id="log-out">CERRAR SESION</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="match-register-menu">
+            <div class="match-register-content">
+                <button class="menu-buttons back-button" id="back-to-menu">&larr; Volver</button>
+
+                <div class="instructions">
+                    <h2>Ingresa a PES 6, juega un partido, y luego con tu dispositivo toma una captura de los resultados y adjuntalos en el cuadro que aparece a continuacion.</h2>
+                </div>
+
+                <div class="match-results">
+                    <input type="file" accept="image/.png,.jpg,.webp">
+                </div>
+
+                <div class="analize-button-container">
+                    <button class="analize-button">Analizar resultados</button>
+                </div>
+            </div>
+        </section>
+
+        <div class="hints-slider" id="hints-slider">
+            <p id="hint">Hola, estos son los consejos de PESITO. Echales un ojo de vez en cuando para saber como funciona la plataforma.</p>
+        </div>
+    </main>
+    <script src="src/public/JS/menu-transition.js"></script>
+</body>
+</html>
