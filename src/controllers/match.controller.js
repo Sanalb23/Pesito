@@ -1,6 +1,7 @@
 const matchModel = require('../models/match.model');
 const userModel = require('../models/user.model');
 const { parseId } = require('../utils/validators');
+const matchService = require('../services/match.service');
 
 const create = async (req, res) => {
     try {
@@ -12,6 +13,10 @@ const create = async (req, res) => {
 
         const homeUserId = parseId(matchData.homeUserId);
         const awayUserId = parseId(matchData.awayUserId);
+
+        if (homeUserId && awayUserId && homeUserId === awayUserId) {
+            return res.status(400).json({ error: "No puedes enviarte una solicitud de partido a ti mismo" });
+        }
 
         const homeUserPromise = homeUserId ? userModel.findById(homeUserId) : null;
         const awayUserPromise = awayUserId ? userModel.findById(awayUserId) : null;
@@ -26,9 +31,16 @@ const create = async (req, res) => {
             return res.status(404).json({ error: "Jugador visitante no encontrado" });
         }
 
-        const newMatch = await matchModel.create(matchData);
+        const newMatch = await matchService.create(matchData);
         res.status(201).json(newMatch);
     } catch (error) {
+
+        if (error.code === '23514') {
+            if (error.constraint === 'chk_ids_distinct') {
+                return res.status(400).json({ message: "No puedes enviarte una solicitud de partido a ti mismo" });
+            }
+        }
+
         res.status(500).json({ error: "Error al crear el partido" });
     }
 };
