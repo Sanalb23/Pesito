@@ -26,6 +26,11 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "El nickname no debe contener espacios" });
         }
 
+        const nicknameExists = await usersModel.findByNickname(nickname);
+        if (nicknameExists) {
+            return res.status(400).json({ message: "El nickname ya está en uso" });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await usersModel.create(nickname, email, hashedPassword);
 
