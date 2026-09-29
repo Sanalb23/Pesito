@@ -180,11 +180,22 @@ const deleteMatch = async (matchId) => {
     return result.rowCount > 0;
 };
 
+const setActive = async (matchId) => {
+    const query = `
+        UPDATE matches
+        SET active = true
+        WHERE id = $1
+        RETURNING *;
+    `;
+    const result = await pool.query(query, [matchId]);
+    return result.rows[0] || null;
+}
 
 module.exports = {
     create,
     getMatchesByUserId,
     getMatchData,
     editMatch,
-    deleteMatch
+    deleteMatch,
+    setActive
 };

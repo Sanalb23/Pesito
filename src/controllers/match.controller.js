@@ -3,7 +3,7 @@ const userModel = require('../models/user.model');
 const { parseId } = require('../utils/validators');
 const matchService = require('../services/match.service');
 
-const create = async (req, res) => {
+const requestCreate = async (req, res) => {
     try {
         const matchData = req.body;
 
@@ -31,7 +31,8 @@ const create = async (req, res) => {
             return res.status(404).json({ error: "Jugador visitante no encontrado" });
         }
 
-        const newMatch = await matchService.create(matchData);
+        const senderId = parseId(req.user?.id);
+        const newMatch = await matchService.requestCreate(matchData, senderId);
         res.status(201).json(newMatch);
     } catch (error) {
 
@@ -42,16 +43,6 @@ const create = async (req, res) => {
         }
 
         res.status(500).json({ error: "Error al crear el partido" });
-    }
-};
-
-const getMyMatches = async (req, res) => {
-    try {
-        const userId = req.user.id;
-        const matches = await matchModel.getMatchesByUserId(userId);
-        res.status(200).json(matches);
-    } catch (error) {
-        res.status(500).json({ error: "Error al obtener los partidos" });
     }
 };
 
@@ -90,10 +81,12 @@ const getMatchData = async (req, res) => {
     }
 };
 
-const editMatch = async (req, res) => {
+const requestEdit = async (req, res) => {
     try {
+        const userId = parseId(req.user.id);
+        const senderId = parseId(req.body.senderId);
         const matchId = parseId(req.params.matchId);
-        const matchData = req.body;
+        const { updatedMatchData } = req.body;
 
         if (!matchId) {
             return res.status(400).json({ error: "Partido no valido" });
@@ -104,11 +97,105 @@ const editMatch = async (req, res) => {
             return res.status(404).json({ error: "Partido no encontrado" });
         }
 
-        if (req.user.id !== match.home_user_id && req.user.id !== match.away_user_id) {
+        if (userId !== match.home_user_id && userId !== match.away_user_id) {
+            return res.status(403).json({ error: "No tienes permiso para solicitar la edición de este partido" });
+        }
+
+        const receiverId = senderId || (userId === match.home_user_id ? match.away_user_id : match.home_user_id);
+
+        await matchService.requestEdit(matchId, userId, receiverId, updatedMatchData);
+
+        res.status(200).json({ message: "Solicitud de edición enviada exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al solicitar la edición del partido" });
+    }
+};
+
+const requestDelete = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+        const senderId = parseId(req.body.senderId);
+        const matchId = parseId(req.params.matchId);
+
+        if (!matchId) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
+        const match = await matchModel.getMatchData(matchId);
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        if (userId !== match.home_user_id && userId !== match.away_user_id) {
+            return res.status(403).json({ error: "No tienes permiso para solicitar la eliminación de este partido" });
+        }
+
+        const receiverId = senderId || (userId === match.home_user_id ? match.away_user_id : match.home_user_id);
+
+        await matchService.requestDelete(matchId, userId, receiverId);
+
+        res.status(200).json({ message: "Solicitud de eliminación enviada exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al solicitar la eliminación del partido" });
+    }
+};
+
+const confirmMatch = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+        const senderId = parseId(req.body.senderId);
+        const matchId = parseId(req.params.matchId);
+
+        if (!matchId) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
+        const match = await matchModel.getMatchData(matchId);
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        if (userId !== match.home_user_id && userId !== match.away_user_id) {
+            return res.status(403).json({ error: "No tienes permiso para activar este partido" });
+        }
+
+        const receiverId = senderId || (userId === match.home_user_id ? match.away_user_id : match.home_user_id);
+
+        const updatedMatch = await matchService.confirmCreate(matchId, userId, receiverId);
+
+        if (!updatedMatch) {
+            return res.status(404).json({ error: "No se pudo confirmar el partido" });
+        }
+
+        res.status(200).json({ message: "Partido confirmado exitosamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al confirmar el partido" });
+    }
+};
+
+const confirmEdit = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+        const senderId = parseId(req.body.senderId);
+        const matchId = parseId(req.params.matchId);
+        const { updatedMatchData } = req.body;
+
+        if (!matchId) {
+            return res.status(400).json({ error: "Partido no valido" });
+        }
+
+        const match = await matchModel.getMatchData(matchId);
+        if (!match) {
+            return res.status(404).json({ error: "Partido no encontrado" });
+        }
+
+        if (userId !== match.home_user_id && userId !== match.away_user_id) {
             return res.status(403).json({ error: "No tienes permiso para editar este partido" });
         }
 
-        const updatedMatch = await matchModel.editMatch(matchId, matchData);
+        const receiverId = senderId;
+
+        const updatedMatch = await matchService.confirmEdit(matchId, userId, receiverId, updatedMatchData);
 
         if (!updatedMatch) {
             return res.status(404).json({ error: "Partido no encontrado" });
@@ -120,10 +207,11 @@ const editMatch = async (req, res) => {
     }
 };
 
-const deleteMatch = async (req, res) => {
+const confirmDelete = async (req, res) => {
     try {
+        const userId = parseId(req.user.id);
+        const senderId = parseId(req.body.senderId);
         const matchId = parseId(req.params.matchId);
-        const userId = req.user.id;
 
         if (!matchId) {
             return res.status(400).json({ error: "Partido no valido" });
@@ -138,7 +226,9 @@ const deleteMatch = async (req, res) => {
             return res.status(403).json({ error: "No tienes permiso para eliminar este partido" });
         }
 
-        const deletedMatch = await matchModel.deleteMatch(matchId);
+        const receiverId = senderId || (userId === match.home_user_id ? match.away_user_id : match.home_user_id);
+
+        const deletedMatch = await matchService.confirmDelete(matchId, userId, receiverId);
 
         if (!deletedMatch) {
             return res.status(404).json({ error: "No se pudo eliminar el partido" });
@@ -151,11 +241,24 @@ const deleteMatch = async (req, res) => {
 };
 
 
+const getMyMatches = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const matches = await matchModel.getMatchesByUserId(userId);
+        res.status(200).json(matches);
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los partidos" });
+    }
+};
+
 module.exports = {
-    create,
+    requestCreate,
     getMyMatches,
     getMatchesByUserId,
     getMatchData,
-    editMatch,
-    deleteMatch
+    requestEdit,
+    requestDelete,
+    confirmMatch,
+    confirmEdit,
+    confirmDelete,
 };

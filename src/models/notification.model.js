@@ -7,7 +7,11 @@ const createNotification = async (senderId = null, receiverId, type, content = n
         'friend_request': 'friendship_id',
         'friend_confirmation': 'friendship_id',
         'match_request': 'match_id',
-        'match_confirmation': 'match_id'
+        'match_confirmation': 'match_id',
+        'match_edit_request': 'match_id',
+        'match_edit_confirmation': 'match_id',
+        'match_delete_request': 'match_id',
+        'match_edit': 'match_id'
     }
 
     const relatedColumn = typeRelated[type] || null;
