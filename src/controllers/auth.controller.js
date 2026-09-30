@@ -12,23 +12,12 @@ const register = async (req, res) => {
     try {
         const { nickname, email, password } = req.body;
 
-        const userExists = await usersModel.findByEmail(email);
-
-        if (userExists) {
-            return res.status(400).json({ message: "El usuario ya existe" });
-        }
-
         if (password.length < 8 || password.length > 12) {
             return res.status(400).json({ message: "La contraseña debe tener entre 8 y 12 caracteres" });
         }
 
         if (nickname.includes(' ')) {
             return res.status(400).json({ message: "El nickname no debe contener espacios" });
-        }
-
-        const nicknameExists = await usersModel.findByNickname(nickname);
-        if (nicknameExists) {
-            return res.status(400).json({ message: "El nickname ya está en uso" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -39,6 +28,16 @@ const register = async (req, res) => {
 
         res.status(201).json({ message: "Usuario registrado exitosamente", user: newUser });
     } catch (error) {
+        if (error.code === '23505') {
+            if (error.constraint === 'users_email_key') {
+                return res.status(400).json({ message: "El email ya está en uso" });
+            }
+
+            if (error.constraint === 'users_nickname_key') {
+                return res.status(400).json({ message: "El nickname ya está en uso" });
+            }
+        }
+
         res.status(500).json({ error: "Error al registrar el usuario" });
     }
 };
