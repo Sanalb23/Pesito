@@ -15,14 +15,14 @@ const verifyRefreshToken = (token) => {
 const verifyToken = (req, res, next) => {
     const token = req.cookies.access_token;
     if (!token) {
-        return res.status(401).json({ message: "Token no proporcionado" });
+        return res.status(401).json({ error: "MISSING_TOKEN", message: "Token no proporcionado" });
     }
     try {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
         req.user = { id: decoded.id };
         next();
     } catch (error) {
-        return res.status(401).json({ message: "Token inválido" });
+        return res.status(401).json({ error: "INVALID_TOKEN", message: "Token inválido" });
     }
 };
 

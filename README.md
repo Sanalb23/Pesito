@@ -24,9 +24,32 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   - `sameSite: 'strict'` (Protección contra ataques CSRF).
 - **Middleware de Autenticación (`verifyToken`):**
   - Examina `req.cookies.access_token`.
-  - Si la cookie no está presente: Retorna estatus `401 Unauthorized` con el cuerpo `{"message": "Token no proporcionado"}`.
-  - Si el token expiró o es inválido: Retorna estatus `401 Unauthorized` con el cuerpo `{"message": "Token inválido"}`.
+  - Si la cookie no está presente: Retorna estatus `401 Unauthorized` con el cuerpo `{"error": "MISSING_TOKEN", "message": "Token no proporcionado"}`.
+  - Si el token expiró o es inválido: Retorna estatus `401 Unauthorized` con el cuerpo `{"error": "INVALID_TOKEN", "message": "Token inválido"}`.
   - Si es válido: Asigna `req.user = { id: decoded.id }` y permite el paso al controlador.
+
+---
+
+## 📐 Convención de Respuestas
+
+Todos los endpoints siguen una convención uniforme:
+
+**Éxito** (con datos):
+```json
+{ "message": "Operación realizada correctamente", "data": {} }
+```
+
+**Éxito** (sin datos — solo confirmación):
+```json
+{ "message": "Operación realizada correctamente" }
+```
+
+**Error**:
+```json
+{ "error": "ERROR_CODE", "message": "Descripción del problema" }
+```
+
+Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`, `INVALID_PASSWORD`, `FORBIDDEN`).
 
 ---
 
@@ -91,7 +114,7 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   ```json
   {
     "message": "Usuario registrado exitosamente",
-    "user": {
+    "data": {
       "id": 1,
       "nickname": "jugador1",
       "email": "jugador1@ejemplo.com"
@@ -99,13 +122,13 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   }
   ```
 - **`400 Bad Request`**: Error de validación o datos duplicados.
-  - Email ya registrado (`users_email_key`): `{"message": "El email ya está en uso"}`
-  - Nickname ya registrado (`users_nickname_key`): `{"message": "El nickname ya está en uso"}`
-  - Contraseña inválida: `{"message": "La contraseña debe tener entre 8 y 12 caracteres"}`
-  - Nickname con espacios: `{"message": "El nickname no debe contener espacios"}`
-- **`500 Internal Server Error`**: Error interno del servidor.
+  - Email ya registrado: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
+  - Nickname ya registrado: `{"error": "NICKNAME_IN_USE", "message": "El nickname ya está en uso"}`
+  - Contraseña inválida: `{"error": "INVALID_PASSWORD", "message": "La contraseña debe tener entre 8 y 12 caracteres"}`
+  - Nickname con espacios: `{"error": "INVALID_NICKNAME", "message": "El nickname no debe contener espacios"}`
+- **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al registrar el usuario" }
+  { "error": "REGISTER_ERROR", "message": "Error al registrar el usuario" }
   ```
 
 ---
@@ -133,7 +156,7 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   ```json
   {
     "message": "Login exitoso",
-    "user": {
+    "data": {
       "id": 1,
       "nickname": "jugador1",
       "email": "jugador1@ejemplo.com"
@@ -141,11 +164,11 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   }
   ```
 - **`400 Bad Request`**: Credenciales inválidas.
-  - Usuario no encontrado: `{"message": "El usuario no existe"}`
-  - Contraseña incorrecta: `{"message": "Contraseña incorrecta"}`
-- **`500 Internal Server Error`**: Error en el proceso de autenticación.
+  - Usuario no encontrado: `{"error": "USER_NOT_FOUND", "message": "El usuario no existe"}`
+  - Contraseña incorrecta: `{"error": "INVALID_PASSWORD", "message": "Contraseña incorrecta"}`
+- **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al iniciar sesión" }
+  { "error": "LOGIN_ERROR", "message": "Error al iniciar sesión" }
   ```
 
 ---
@@ -162,7 +185,7 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   ```
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al cerrar sesión" }
+  { "error": "LOGOUT_ERROR", "message": "Error al cerrar sesión" }
   ```
 
 ---
@@ -177,24 +200,23 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
   ```json
   {
     "message": "Token renovado exitosamente",
-    "user": {
+    "data": {
       "id": 1,
-      "nickname": "jugador1",
-      "email": "jugador1@ejemplo.com"
+      "nickname": "jugador1"
     }
   }
   ```
 - **`401 Unauthorized`**: Si la cookie `refresh_token` no fue proporcionada.
   ```json
-  { "message": "Refresh Token no proporcionado" }
+  { "error": "MISSING_REFRESH_TOKEN", "message": "Refresh Token no proporcionado" }
   ```
 - **`403 Forbidden`**: Si el `refresh_token` es inválido o ha expirado.
   ```json
-  { "message": "Refresh Token inválido o expirado" }
+  { "error": "INVALID_REFRESH_TOKEN", "message": "Refresh Token inválido o expirado" }
   ```
 - **`404 Not Found`**: Si el usuario especificado en el token no existe en la base de datos.
   ```json
-  { "message": "Usuario no encontrado" }
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
   ```
 
 ---
@@ -216,27 +238,27 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Lista de usuarios coincidentes.
   ```json
-  [
-    {
-      "id": 1,
-      "nickname": "jugador1"
-    },
-    {
-      "id": 5,
-      "nickname": "jugadorPro"
-    }
-  ]
+  {
+    "message": "Usuarios encontrados",
+    "data": [
+      { "id": 1, "nickname": "jugador1" },
+      { "id": 5, "nickname": "jugadorPro" }
+    ]
+  }
   ```
 - **`400 Bad Request`**: Si el parámetro `query` no fue proporcionado o está vacío.
   ```json
-  { "message": "Debes ingresar un termino de busqueda" }
+  { "error": "MISSING_SEARCH_QUERY", "message": "Debes ingresar un termino de busqueda" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`404 Not Found`**: Si no se encuentra ningún usuario coincidente.
   ```json
-  { "message": "Usuario no encontrado" }
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
   ```
-- **`500 Internal Server Error`**: Error en la base de datos o servidor.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "SEARCH_USER_ERROR", "message": "..." }
+  ```
 
 ---
 
@@ -248,25 +270,28 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Lista de partidos del usuario en sesión.
   ```json
-  [
-    {
-      "id": 12,
-      "home_user_id": 1,
-      "home_user_nickname": "jugador1",
-      "home_team_name": "Real Madrid",
-      "away_user_id": 3,
-      "away_user_nickname": "jugador3",
-      "away_team_name": "FC Barcelona",
-      "home_goals": 2,
-      "away_goals": 1,
-      "date": "2026-09-20T20:30:00.000Z"
-    }
-  ]
+  {
+    "message": "Partidos obtenidos",
+    "data": [
+      {
+        "id": 12,
+        "home_user_id": 1,
+        "home_user_nickname": "jugador1",
+        "home_team_name": "Real Madrid",
+        "away_user_id": 3,
+        "away_user_nickname": "jugador3",
+        "away_team_name": "FC Barcelona",
+        "home_goals": 2,
+        "away_goals": 1,
+        "date": "2026-09-20T20:30:00.000Z"
+      }
+    ]
+  }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener los partidos" }
+  { "error": "GET_MATCHES_ERROR", "message": "Error al obtener los partidos" }
   ```
 
 ---
@@ -285,14 +310,17 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 
 #### Respuestas:
 - **`200 OK`**: Lista de partidos del usuario solicitado.
+  ```json
+  { "message": "Partidos obtenidos", "data": [ ... ] }
+  ```
 - **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
   ```json
-  { "error": "Usuario no valido" }
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener los partidos" }
+  { "error": "GET_MATCHES_ERROR", "message": "Error al obtener los partidos" }
   ```
 
 ---
@@ -307,22 +335,17 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Lista de juegos.
   ```json
-  [
-    {
-      "id": 1,
-      "name": "eFootball 2024",
-      "release_year": 2023
-    },
-    {
-      "id": 2,
-      "name": "PES 2021",
-      "release_year": 2020
-    }
-  ]
+  {
+    "message": "Juegos obtenidos",
+    "data": [
+      { "id": 1, "name": "eFootball 2024", "release_year": 2023 },
+      { "id": 2, "name": "PES 2021", "release_year": 2020 }
+    ]
+  }
   ```
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener los juegos" }
+  { "error": "GET_GAMES_ERROR", "message": "Error al obtener los juegos" }
   ```
 
 ---
@@ -340,20 +363,21 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Lista de ligas distintas.
   ```json
-  [
-    {
-      "id": 4,
-      "name": "LaLiga EA Sports"
-    },
-    {
-      "id": 8,
-      "name": "Premier League"
-    }
-  ]
+  {
+    "message": "Ligas obtenidas",
+    "data": [
+      { "id": 4, "name": "LaLiga EA Sports" },
+      { "id": 8, "name": "Premier League" }
+    ]
+  }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_GAME_ID", "message": "Juego no valido" }
   ```
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener las ligas" }
+  { "error": "GET_LEAGUES_ERROR", "message": "Error al obtener las ligas" }
   ```
 
 ---
@@ -374,20 +398,21 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Lista de relaciones equipo-juego.
   ```json
-  [
-    {
-      "id": 45,
-      "name": "Arsenal FC"
-    },
-    {
-      "id": 46,
-      "name": "Chelsea FC"
-    }
-  ]
+  {
+    "message": "Equipos obtenidos",
+    "data": [
+      { "id": 45, "name": "Arsenal FC" },
+      { "id": 46, "name": "Chelsea FC" }
+    ]
+  }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_GAME_OR_LEAGUE_ID", "message": "Juego o liga no valida" }
   ```
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener los equipos" }
+  { "error": "GET_TEAMS_ERROR", "message": "Error al obtener los equipos" }
   ```
 
 ---
@@ -450,28 +475,31 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 - **`201 Created`**: Solicitud enviada correctamente.
   ```json
   {
-    "id": 18,
-    "message": "Solicitud de partido enviada exitosamente"
+    "message": "Solicitud de partido creada",
+    "data": { "id": 18 }
   }
   ```
 - **`400 Bad Request`**: Si ambos participantes son nulos.
   ```json
-  { "error": "Debes especificar al menos un jugador registrado" }
+  { "error": "MISSING_PLAYERS", "message": "Debes especificar al menos un jugador registrado" }
   ```
 - **`400 Bad Request`**: Si `homeUserId` y `awayUserId` son el mismo jugador.
   ```json
-  { "error": "No puedes enviarte una solicitud de partido a ti mismo" }
+  { "error": "SELF_MATCH_REQUEST", "message": "No puedes enviarte una solicitud de partido a ti mismo" }
   ```
 - **`404 Not Found`**: Si el jugador local no existe.
   ```json
-  { "error": "Jugador local no encontrado" }
+  { "error": "HOME_USER_NOT_FOUND", "message": "Jugador local no encontrado" }
   ```
 - **`404 Not Found`**: Si el jugador visitante no existe.
   ```json
-  { "error": "Jugador visitante no encontrado" }
+  { "error": "AWAY_USER_NOT_FOUND", "message": "Jugador visitante no encontrado" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
-- **`500 Internal Server Error`**: Error al crear la solicitud de partido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CREATE_MATCH_ERROR", "message": "Error al crear el partido" }
+  ```
 
 ---
 
@@ -488,18 +516,21 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 #### Respuestas:
 - **`200 OK`**: Partido confirmado y activado.
   ```json
-  { "message": "Partido confirmado y activado exitosamente" }
+  { "message": "Partido confirmado exitosamente" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`403 Forbidden`**: El usuario no es participante del partido.
   ```json
-  { "error": "No tienes permiso para confirmar este partido" }
+  { "error": "FORBIDDEN", "message": "No tienes permiso para activar este partido" }
   ```
 - **`404 Not Found`**: Partido no encontrado.
   ```json
-  { "error": "Partido no encontrado" }
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
   ```
-- **`500 Internal Server Error`**: Error en el servidor.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_MATCH_ERROR", "message": "Error al confirmar el partido" }
+  ```
 
 ---
 
@@ -519,11 +550,21 @@ Contiene los campos de partido o estadísticas que se proponen modificar.
 #### Respuestas:
 - **`200 OK`**: Solicitud de edición enviada.
   ```json
-  { "message": "Solicitud de edición de partido enviada exitosamente" }
+  { "message": "Solicitud de edición enviada exitosamente" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`403 Forbidden`**: Si el usuario no fue participante del partido.
-- **`500 Internal Server Error`**: Error al solicitar edición.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para solicitar la edición de este partido" }
+  ```
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "REQUEST_EDIT_ERROR", "message": "Error al solicitar la edición del partido" }
+  ```
 
 ---
 
@@ -545,20 +586,23 @@ Acepta la estructura de datos del partido y objeto `stats` a actualizar.
   ```json
   { "message": "Partido editado exitosamente" }
   ```
-- **`400 Bad Request`**: ID de partido inválido (`matchId <= 0`).
+- **`400 Bad Request`**: ID de partido inválido.
   ```json
-  { "error": "Partido no valido" }
+  { "error": "INVALID_MATCH_ID", "message": "Partido no valido" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`403 Forbidden`**: Si el usuario autenticado no fue participante del partido.
   ```json
-  { "error": "No tienes permiso para editar este partido" }
+  { "error": "FORBIDDEN", "message": "No tienes permiso para editar este partido" }
   ```
 - **`404 Not Found`**: El partido no existe.
   ```json
-  { "error": "Partido no encontrado" }
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
   ```
-- **`500 Internal Server Error`**: Error al editar el partido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_EDIT_ERROR", "message": "Error al editar el partido" }
+  ```
 
 ---
 
@@ -579,7 +623,17 @@ Acepta la estructura de datos del partido y objeto `stats` a actualizar.
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`403 Forbidden`**: Si el usuario no es participante del encuentro.
-- **`500 Internal Server Error`**: Error al solicitar la eliminación.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para solicitar la eliminación de este partido" }
+  ```
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "REQUEST_DELETE_ERROR", "message": "Error al solicitar la eliminación del partido" }
+  ```
 
 ---
 
@@ -600,15 +654,21 @@ Acepta la estructura de datos del partido y objeto `stats` a actualizar.
   ```
 - **`400 Bad Request`**: ID no válido.
   ```json
-  { "error": "Partido no valido" }
+  { "error": "INVALID_MATCH_ID", "message": "Partido no valido" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`403 Forbidden`**: Si el usuario no fue participante del encuentro.
   ```json
-  { "error": "No tienes permiso para eliminar este partido" }
+  { "error": "FORBIDDEN", "message": "No tienes permiso para eliminar este partido" }
   ```
 - **`404 Not Found`**: Si el partido no existe o no pudo eliminarse.
-- **`500 Internal Server Error`**: Error al eliminar el partido.
+  ```json
+  { "error": "DELETE_MATCH_FAILED", "message": "No se pudo eliminar el partido" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_DELETE_ERROR", "message": "Error al eliminar el partido" }
+  ```
 
 ---
 
@@ -626,48 +686,36 @@ Acepta la estructura de datos del partido y objeto `stats` a actualizar.
 - **`200 OK`**: Datos y estadísticas del partido.
   ```json
   {
-    "id": 18,
-    "home_user_id": 1,
-    "home_user_nickname": "jugador1",
-    "home_team_name": "Arsenal FC",
-    "away_user_id": 2,
-    "away_user_nickname": "jugador2",
-    "away_team_name": "Chelsea FC",
-    "home_goals": 3,
-    "away_goals": 2,
-    "date": "2026-09-20T21:40:00.000Z",
-    "stats": {
-      "id": 9,
-      "match_id": 18,
-      "home_possession": 55,
-      "away_possession": 45,
-      "home_shots": 12,
-      "away_shots": 8,
-      "home_shots_on_target": 6,
-      "away_shots_on_target": 3,
-      "home_penalties": 0,
-      "away_penalties": 0,
-      "home_free_kicks": 4,
-      "away_free_kicks": 5,
-      "home_corner_kicks": 6,
-      "away_corner_kicks": 2,
-      "home_offsides": 1,
-      "away_offsides": 3,
-      "home_fouls": 8,
-      "away_fouls": 10,
-      "home_yellow_cards": 1,
-      "away_yellow_cards": 2,
-      "home_red_cards": 0,
-      "away_red_cards": 0
+    "message": "Partido obtenido",
+    "data": {
+      "id": 18,
+      "home_user_id": 1,
+      "home_user_nickname": "jugador1",
+      "home_team_name": "Arsenal FC",
+      "away_user_id": 2,
+      "away_user_nickname": "jugador2",
+      "away_team_name": "Chelsea FC",
+      "home_goals": 3,
+      "away_goals": 2,
+      "date": "2026-09-20T21:40:00.000Z",
+      "stats": {
+        "id": 9,
+        "match_id": 18,
+        "home_possession": 55,
+        "away_possession": 45
+      }
     }
   }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`404 Not Found`**: Partido no encontrado.
   ```json
-  { "error": "Partido no encontrado" }
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
   ```
-- **`500 Internal Server Error`**: Error al consultar el partido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MATCH_ERROR", "message": "Error al obtener el partido" }
+  ```
 
 ---
 
@@ -683,19 +731,17 @@ El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante
 #### Respuestas:
 - **`200 OK`**: Lista de amigos confirmados.
   ```json
-  [
-    {
-      "id": 2,
-      "nickname": "jugador2",
-      "email": "jugador2@ejemplo.com",
-      "status": "Active"
-    }
-  ]
+  {
+    "message": "Lista de amigos obtenida",
+    "data": [
+      { "id": 2, "nickname": "jugador2" }
+    ]
+  }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener la lista de amigos" }
+  { "error": "GET_FRIENDS_ERROR", "message": "Error al obtener la lista de amigos" }
   ```
 
 ---
@@ -721,13 +767,21 @@ El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante
 - **`200 OK`**: Estado de la relación obtenido.
   ```json
   {
-    "status": "active"
+    "message": "Estado de amistad obtenido",
+    "data": {
+      "status": "active",
+      "friendship": { "id": 4, "user_id": 1, "friend_id": 2, "status": "Active" }
+    }
   }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_USER_ID", "message": "ID de usuario inválido" }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener el estado de la relación" }
+  { "error": "GET_FRIENDSHIP_STATUS_ERROR", "message": "Error al obtener el estado de la amistad" }
   ```
 
 ---
@@ -750,13 +804,17 @@ El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante
 #### Respuestas:
 - **`201 Created`**: Solicitud enviada exitosamente.
   ```json
-  { "message": "Solicitud de amistad enviada exitosamente" }
+  { "message": "Solicitud enviada", "data": { "id": 4 } }
   ```
 - **`400 Bad Request`**:
-  - Auto-solicitud: `{"message": "No puedes enviarte una solicitud de amistad a ti mismo"}`
-  - Relación duplicada / invertida: `{"message": "Ya existe una solicitud o relación de amistad con este usuario"}`
+  - Auto-solicitud: `{"error": "SELF_REQUEST", "message": "No puedes enviarte una solicitud de amistad a ti mismo"}`
+- **`409 Conflict`**:
+  - Relación duplicada / invertida: `{"error": "FRIENDSHIP_ALREADY_EXISTS", "message": "Ya existe una solicitud o amistad activa con este usuario"}`
 - **`401 Unauthorized`**: Token ausente o inválido.
-- **`500 Internal Server Error`**: Error al enviar la solicitud.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "SEND_REQUEST_ERROR", "message": "Error al enviar la solicitud de amistad" }
+  ```
 
 ---
 
@@ -773,14 +831,17 @@ El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante
 #### Respuestas:
 - **`200 OK`**: Solicitud aceptada.
   ```json
-  { "message": "Solicitud de amistad aceptada exitosamente" }
+  { "message": "Solicitud aceptada", "data": { "id": 4, "user_id": 2, "friend_id": 1, "status": "Active" } }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`404 Not Found`**: Si no existe una solicitud pendiente de ese usuario.
   ```json
-  { "message": "Solicitud de amistad no encontrada" }
+  { "error": "REQUEST_NOT_FOUND", "message": "Solicitud no encontrada" }
   ```
-- **`500 Internal Server Error`**: Error al aceptar la solicitud.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "ACCEPT_REQUEST_ERROR", "message": "Error al aceptar la solicitud" }
+  ```
 
 ---
 
@@ -797,11 +858,13 @@ El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante
 #### Respuestas:
 - **`200 OK`**: Amistad eliminada o rechazada.
   ```json
-  { "message": "Amistad eliminada correctamente" }
+  { "message": "Amistad eliminada", "data": { "id": 4, "user_id": 1, "friend_id": 2, "status": "Active" } }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
-- **`404 Not Found`**: Si la relación no existe.
-- **`500 Internal Server Error`**: Error al eliminar la relación.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_FRIEND_ERROR", "message": "Error al eliminar amigo" }
+  ```
 
 ---
 
@@ -833,37 +896,28 @@ El módulo de notificaciones gestiona la creación, lectura y eliminación de al
 #### Respuestas:
 - **`200 OK`**: Listado de notificaciones.
   ```json
-  [
-    {
-      "id": 10,
-      "sender_id": 2,
-      "sender_nickname": "jugador2",
-      "receiver_id": 1,
-      "type": "friend_request",
-      "content": null,
-      "friendship_id": 4,
-      "match_id": null,
-      "is_read": false,
-      "created_at": "2026-09-25T14:30:00.000Z"
-    },
-    {
-      "id": 11,
-      "sender_id": 2,
-      "sender_nickname": "jugador2",
-      "receiver_id": 1,
-      "type": "match_edit_request",
-      "content": "{\"homeGoals\":3,\"awayGoals\":3}",
-      "friendship_id": null,
-      "match_id": 18,
-      "is_read": false,
-      "created_at": "2026-09-25T15:00:00.000Z"
-    }
-  ]
+  {
+    "message": "Notificaciones obtenidas",
+    "data": [
+      {
+        "id": 10,
+        "sender_id": 2,
+        "sender_nickname": "jugador2",
+        "receiver_id": 1,
+        "type": "friend_request",
+        "content": null,
+        "friendship_id": 4,
+        "match_id": null,
+        "is_read": false,
+        "created_at": "2026-09-25T14:30:00.000Z"
+      }
+    ]
+  }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al obtener las notificaciones" }
+  { "error": "GET_NOTIFICATIONS_ERROR", "message": "Error al obtener las notificaciones" }
   ```
 
 ---
@@ -893,11 +947,14 @@ El módulo de notificaciones gestiona la creación, lectura y eliminación de al
 | `relatedId` | `integer \| null` | No | ID asociado (`friendship_id` o `match_id`). |
 
 #### Respuestas:
-- **`200 OK`** / **`201 Created`**: Objeto de la notificación creada.
+- **`201 Created`**: Notificación creada.
+  ```json
+  { "message": "Notificación creada", "data": { "id": 12 } }
+  ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al crear la notificación" }
+  { "error": "CREATE_NOTIFICATION_ERROR", "message": "Error al crear la notificación" }
   ```
 
 ---
@@ -913,14 +970,14 @@ El módulo de notificaciones gestiona la creación, lectura y eliminación de al
 | `notificationId` | `integer` | Sí | ID de la notificación a actualizar. |
 
 #### Respuestas:
-- **`200 OK`**: Notificación actualizada.
+- **`200 OK`**: Notificación marcada como leída.
   ```json
-  { "message": "Notificación marcada como leída" }
+  { "message": "Notificación marcada como leída", "data": { "id": 10 } }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al marcar la notificación como leída" }
+  { "error": "MARK_NOTIFICATION_ERROR", "message": "Error al marcar la notificación como leída" }
   ```
 
 ---
@@ -933,12 +990,15 @@ El módulo de notificaciones gestiona la creación, lectura y eliminación de al
 #### Respuestas:
 - **`200 OK`**: Notificaciones actualizadas.
   ```json
-  { "message": "Todas las notificaciones marcadas como leídas" }
+  {
+    "message": "Todas las notificaciones marcadas como leídas",
+    "data": [ { "id": 10 }, { "id": 11 } ]
+  }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al marcar todas las notificaciones como leídas" }
+  { "error": "MARK_ALL_NOTIFICATIONS_ERROR", "message": "Error al marcar todas las notificaciones como leídas" }
   ```
 
 ---
@@ -956,10 +1016,10 @@ El módulo de notificaciones gestiona la creación, lectura y eliminación de al
 #### Respuestas:
 - **`200 OK`**: Notificación eliminada.
   ```json
-  { "message": "Notificación eliminada exitosamente" }
+  { "message": "Notificación eliminada", "data": { "id": 10 } }
   ```
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:
   ```json
-  { "error": "Error al eliminar la notificación" }
+  { "error": "DELETE_NOTIFICATION_ERROR", "message": "Error al eliminar la notificación" }
   ```
