@@ -1,0 +1,5 @@
+Invitar a un amigo
+IA QUE INTERPRETE IMAGENES (FUTURO / OPCIONAL)
+Identificar jugadores
+Estadisticas Graficos - comparar resultados con amigos
+Configuracion de perfil - agregar equipo 

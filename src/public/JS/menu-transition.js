@@ -59,7 +59,6 @@ if (backButton) {
         switchSections(matchRegisterContent, matchRegisterMenu, mainMenu, mainMenu);
     });
 }
-
 // NOTA: "user-stats", "user-friends" y "log-out" todavia no tienen
 // una seccion propia en el HTML. Cuando la agregues, podes reusar
 // switchSections() exactamente igual que arriba.

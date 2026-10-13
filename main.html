@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="src/public/CSS/main.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/buttons.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/hints-slider.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/stats.css">
     <link rel="icon" type="image/png" href="src/public/Icons/proevolutionsoccerlogo.ico">
 </head>
 <body>
@@ -56,10 +57,72 @@
             </div>
         </section>
 
+        <section class="my-stats" aria-hidden="true">
+            <button class="stats-back" id="stats-back-to-menu" type="button">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3 6 12l9 9"/></svg>
+                Volver al menu
+            </button>
+
+            <h2 class="stats-title">MIS <span>ESTADISTICAS</span></h2>
+
+            <div class="stats-content">
+                <div class="stats-rings">
+                    <div class="ring-block">
+                        <div class="ring" data-ring="level">
+                            <svg viewBox="0 0 200 200" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="ring-grad-level" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="200">
+                                        <stop offset="0" stop-color="#ffcc00" stop-opacity="1"/>
+                                        <stop offset="0.6" stop-color="#ffcc00" stop-opacity="1"/>
+                                        <stop offset="1" stop-color="#ffcc00" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path class="ring-arc" pathLength="100" stroke="url(#ring-grad-level)"
+                                    d="M100 6 A94 94 0 0 1 100 194 A94 94 0 0 1 100 6"/>
+                            </svg>
+                            <span class="ring-value" data-stat="level">99</span>
+                        </div>
+                        <span class="ring-label">Nivel de jugador</span>
+                    </div>
+
+                    <div class="ring-block">
+                        <div class="ring" data-ring="ratio">
+                            <svg viewBox="0 0 200 200" aria-hidden="true">
+                                <defs>
+                                    <linearGradient id="ring-grad-ratio" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="200">
+                                        <stop offset="0" stop-color="#ffcc00" stop-opacity="1"/>
+                                        <stop offset="0.6" stop-color="#ffcc00" stop-opacity="1"/>
+                                        <stop offset="1" stop-color="#ffcc00" stop-opacity="0"/>
+                                    </linearGradient>
+                                </defs>
+                                <path class="ring-arc" pathLength="100" stroke="url(#ring-grad-ratio)"
+                                    d="M100 6 A94 94 0 0 1 100 194 A94 94 0 0 1 100 6"/>
+                            </svg>
+                            <span class="ring-value" data-stat="ratio">1.01</span>
+                        </div>
+                        <span class="ring-label">Ratio V/D</span>
+                    </div>
+                </div>
+
+                <div class="stats-divider" aria-hidden="true"></div>
+
+                <ul class="stats-list">
+                    <li>Partidos jugados: <span data-stat="played">2</span></li>
+                    <li>Partidos ganados: <span data-stat="won">2</span></li>
+                    <li>Partidos perdidos: <span data-stat="lost">2</span></li>
+                </ul>
+            </div>
+        </section>
+
+
+        <!-- MODAL DE AMIGOS -->
+
+        <!--2D0 PARCIAL DE SISTEMAS DE INFORMACION EMPRESARIAL: DOCUMENTOS COMERCIALES, SISTEMAS DE COSTOS, FUNCION DE AREA COMPRA.-->
         <div class="hints-slider" id="hints-slider">
             <p id="hint">Hola, estos son los consejos de PESITO. Echales un ojo de vez en cuando para saber como funciona la plataforma.</p>
         </div>
     </main>
     <script src="src/public/JS/menu-transition.js"></script>
+    <script src="src/public/JS/stats.js"></script>
 </body>
 </html>
