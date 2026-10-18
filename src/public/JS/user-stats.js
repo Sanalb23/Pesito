@@ -1,27 +1,22 @@
 (function () {
-    const AVERAGE_STATS = [
-        { key: 'possession', label: 'Posesión (%)' },
-        { key: 'shots', label: 'Disparos' },
-        { key: 'shots_on_target', label: 'Disparos a puerta' },
-        { key: 'fouls', label: 'Faltas' },
-        { key: 'corners', label: 'Saques de esquina' },
-        { key: 'yellow_cards', label: 'Tarjetas amarillas' }
-    ];
-
     const RESULT_STYLES = {
         win: { letter: 'G', title: 'Victoria', className: 'us-win' },
         draw: { letter: 'E', title: 'Empate', className: 'us-draw' },
         loss: { letter: 'P', title: 'Derrota', className: 'us-loss' }
     };
 
-    const XP_PER_LEVEL_STEP = 100;
     const EMPTY_VALUE = '—';
+    const DEFAULT_ERROR_MESSAGE = 'Hubo un problema al traer tus estadísticas. Inténtalo de nuevo.';
     const STATE_NAMES = ['loading', 'error', 'empty', 'dashboard'];
+
+    const api = window.pesitoApi;
+    const calc = window.pesitoStatsCalc;
 
     const numberFormat = new Intl.NumberFormat('es-AR', { maximumFractionDigits: 1 });
 
     const openStatsLink = document.querySelector('#user-stats');
     const retryButton = document.querySelector('#us-retry-button');
+    const errorMessage = document.querySelector('#us-error-message');
 
     const states = {
         loading: document.querySelector('#us-loading'),
@@ -34,6 +29,7 @@
     const xpFill = document.querySelector('#us-xp-fill');
     const resultBar = document.querySelector('#us-result-bar');
     const recentList = document.querySelector('#us-recent-list');
+    const averagesSection = document.querySelector('#us-averages');
     const compareContainer = document.querySelector('#us-compare');
 
     let latestRequestId = 0;
@@ -65,43 +61,16 @@
     }
 
     function formatDate(isoDate) {
-        const [year, month, day] = String(isoDate || '').slice(0, 10).split('-');
-        return year && month && day ? `${day}/${month}/${year}` : EMPTY_VALUE;
+        const date = new Date(isoDate);
+
+        if (Number.isNaN(date.getTime())) {
+            return EMPTY_VALUE;
+        }
+        return date.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
     }
 
     function percentOf(part, total) {
         return total > 0 ? (part / total) * 100 : 0;
-    }
-
-
-    function getLevelStartXp(level) {
-        return XP_PER_LEVEL_STEP * (level - 1) ** 2;
-    }
-
-    function getLevelFromXp(totalXp) {
-        let level = Math.floor(Math.sqrt(totalXp / XP_PER_LEVEL_STEP)) + 1;
-
-        while (getLevelStartXp(level + 1) <= totalXp) {
-            level += 1;
-        }
-        while (level > 1 && getLevelStartXp(level) > totalXp) {
-            level -= 1;
-        }
-        return level;
-    }
-
-    function getLevelProgress(totalXp) {
-        const xp = toCount(totalXp);
-        const level = getLevelFromXp(xp);
-        const levelStart = getLevelStartXp(level);
-        const nextLevelStart = getLevelStartXp(level + 1);
-
-        return {
-            level,
-            xpInLevel: xp - levelStart,
-            xpNeeded: nextLevelStart - levelStart,
-            xpRemaining: nextLevelStart - xp
-        };
     }
 
     function getMatchResult(myGoals, rivalGoals) {
@@ -122,10 +91,9 @@
     }
 
     function renderProfile(user) {
-        const progress = getLevelProgress(user.total_xp);
-        const fillPercent = percentOf(progress.xpInLevel, progress.xpNeeded);
+        const progress = calc.getLevelProgress(user.total_xp);
 
-        xpFill.style.width = `${fillPercent}%`;
+        xpFill.style.width = `${percentOf(progress.xpInLevel, progress.xpNeeded)}%`;
         xpBar.setAttribute('aria-valuemax', String(progress.xpNeeded));
         xpBar.setAttribute('aria-valuenow', String(progress.xpInLevel));
 
@@ -167,14 +135,14 @@
 
     function renderFavorites(favorites) {
         const team = favorites.team;
-        const game = favorites.game;
         const rival = favorites.rival;
+        const bestWin = favorites.biggest_win;
 
         return {
             favorite_team: team ? team.name : EMPTY_VALUE,
             favorite_team_count: team ? formatMatchCount(team.matches) : '',
-            favorite_game: game ? game.name : EMPTY_VALUE,
-            favorite_game_count: game ? formatMatchCount(game.matches) : '',
+            best_win_score: bestWin ? `${formatNumber(bestWin.my_goals)} - ${formatNumber(bestWin.rival_goals)}` : EMPTY_VALUE,
+            best_win_detail: bestWin ? `vs ${bestWin.rival_nickname} · ${formatDate(bestWin.date)}` : '',
             favorite_rival: rival ? rival.nickname : EMPTY_VALUE,
             favorite_rival_count: rival ? formatMatchCount(rival.matches) : ''
         };
@@ -216,9 +184,7 @@
         recentList.replaceChildren(...matches.map(createRecentMatch));
     }
 
-    function createCompareRow({ key, label }, mineAverages, rivalAverages) {
-        const mine = toCount(mineAverages[key]);
-        const rival = toCount(rivalAverages[key]);
+    function createCompareRow({ label, mine, rival }) {
         const total = mine + rival;
         const mineShare = total > 0 ? percentOf(mine, total) : 50;
 
@@ -256,22 +222,53 @@
     }
 
     function renderAverages(averages) {
-        const rows = AVERAGE_STATS.map((stat) => createCompareRow(stat, averages.mine || {}, averages.rival || {}));
-        compareContainer.replaceChildren(...rows);
+        const hasData = averages.rows.length > 0;
+
+        averagesSection.hidden = !hasData;
+        compareContainer.replaceChildren(...averages.rows.map(createCompareRow));
+
+        return {
+            averages_note: averages.matchesCount === 1
+                ? 'Último partido'
+                : `Últimos ${formatNumber(averages.matchesCount)} partidos`
+        };
     }
 
 
-    function renderUserStats(stats) {
-        const user = stats.user || {};
-        const summary = stats.summary || {};
-
+    function renderUserStats({ stats, averages }) {
         setFields({
-            ...renderProfile(user),
-            ...renderSummary(summary),
-            ...renderFavorites(stats.favorites || {})
+            ...renderProfile(stats.user),
+            ...renderSummary(stats.summary),
+            ...renderFavorites(stats.favorites),
+            ...renderAverages(averages)
         });
-        renderRecentMatches(stats.recent_matches || []);
-        renderAverages(stats.averages || {});
+        renderRecentMatches(stats.recent_matches);
+    }
+
+    async function loadMatchDetails(matchIds) {
+        try {
+            return await api.matches.getMatchesDetails(matchIds);
+        } catch (error) {
+            console.error('No se pudieron cargar las estadísticas de los partidos:', error);
+            return [];
+        }
+    }
+
+    async function fetchUserStats() {
+        const [user, matches] = await Promise.all([
+            api.session.getCurrentUser(),
+            api.users.getMyMatches()
+        ]);
+
+        const stats = calc.buildUserStats(matches, user);
+        const details = stats.summary.matches > 0 ? await loadMatchDetails(stats.averageMatchIds) : [];
+
+        return { stats, averages: calc.buildAverages(details, user.id) };
+    }
+
+    function getLoadErrorMessage(error) {
+        const hasServerMessage = error && error.code && error.code !== 'HTTP_ERROR';
+        return hasServerMessage ? error.message : DEFAULT_ERROR_MESSAGE;
     }
 
     async function loadUserStats() {
@@ -280,18 +277,18 @@
         showState('loading');
 
         try {
-            const stats = await statsApi.getUserStats();
+            const result = await fetchUserStats();
 
             if (requestId !== latestRequestId) {
                 return;
             }
 
-            if (toCount(stats.summary && stats.summary.matches) === 0) {
+            if (result.stats.summary.matches === 0) {
                 showState('empty');
                 return;
             }
 
-            renderUserStats(stats);
+            renderUserStats(result);
             showState('dashboard');
         } catch (error) {
             console.error('Error al cargar las estadísticas:', error);
@@ -299,6 +296,8 @@
             if (requestId !== latestRequestId) {
                 return;
             }
+
+            errorMessage.textContent = getLoadErrorMessage(error);
             showState('error');
         }
     }

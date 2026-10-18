@@ -99,11 +99,6 @@
                         <form id="review-form" novalidate>
                             <div class="mr-meta">
                                 <label class="mr-field">
-                                    <span>Fecha</span>
-                                    <input type="date" name="date" id="match-date">
-                                </label>
-
-                                <label class="mr-field">
                                     <span>Juego</span>
                                     <select name="game_id" id="game-select"></select>
                                 </label>
@@ -170,8 +165,9 @@
                     <!-- PASO 4: PARTIDO REGISTRADO -->
                     <section class="mr-card mr-card-center" id="step-success" hidden>
                         <i class="ph ph-check-circle mr-success-icon"></i>
-                        <h2>¡Partido <span>registrado!</span></h2>
+                        <h2>¡Partido <span>enviado!</span></h2>
                         <p class="mr-summary" id="success-summary"></p>
+                        <p class="mr-success-note" id="success-note" hidden></p>
                         <div class="mr-actions">
                             <button type="button" class="analize-button" id="register-another-button">Registrar otro partido</button>
                         </div>
@@ -194,7 +190,7 @@
                     <section class="us-card us-card-center" id="us-error" role="alert" hidden>
                         <i class="ph ph-warning-circle us-error-icon"></i>
                         <h2>No se pudieron <span>cargar</span></h2>
-                        <p>Hubo un problema al traer tus estadísticas. Inténtalo de nuevo.</p>
+                        <p id="us-error-message">Hubo un problema al traer tus estadísticas. Inténtalo de nuevo.</p>
                         <button type="button" class="analize-button" id="us-retry-button">Reintentar</button>
                     </section>
 
@@ -305,9 +301,9 @@
                         </div>
 
                         <!-- PROMEDIOS POR PARTIDO -->
-                        <section class="us-card us-averages">
+                        <section class="us-card us-averages" id="us-averages">
                             <div class="us-averages-head">
-                                <h3>Promedios por partido</h3>
+                                <h3>Promedios por partido <small class="us-note" data-field="averages_note"></small></h3>
                                 <ul class="us-legend">
                                     <li><i class="us-dot us-mine"></i>Tú</li>
                                     <li><i class="us-dot us-rival"></i>Tus rivales</li>
@@ -328,11 +324,11 @@
                                 </div>
                             </article>
                             <article class="us-favorite">
-                                <i class="ph ph-game-controller"></i>
+                                <i class="ph ph-trophy"></i>
                                 <div>
-                                    <span class="us-favorite-label">Juego más jugado</span>
-                                    <strong data-field="favorite_game"></strong>
-                                    <small data-field="favorite_game_count"></small>
+                                    <span class="us-favorite-label">Mejor victoria</span>
+                                    <strong data-field="best_win_score"></strong>
+                                    <small data-field="best_win_detail"></small>
                                 </div>
                             </article>
                             <article class="us-favorite">
@@ -388,10 +384,18 @@
             </div>
         </div>
     </div>
+    <script src="src/public/JS/config.js"></script>
+    <script src="src/public/JS/api/client.js"></script>
+    <script src="src/public/JS/api/demo-server.js"></script>
+    <script src="src/public/JS/api/session.js"></script>
+    <script src="src/public/JS/api/games.js"></script>
+    <script src="src/public/JS/api/friends.js"></script>
+    <script src="src/public/JS/api/matches.js"></script>
+    <script src="src/public/JS/api/analysis.js"></script>
+    <script src="src/public/JS/api/users.js"></script>
     <script src="src/public/JS/menu-transition.js"></script>
-    <script src="src/public/JS/match-register-api.js"></script>
     <script src="src/public/JS/match-register.js"></script>
-    <script src="src/public/JS/user-stats-api.js"></script>
+    <script src="src/public/JS/user-stats-calc.js"></script>
     <script src="src/public/JS/user-stats.js"></script>
     <script src="src/public/JS/stats.js"></script>
 </body>

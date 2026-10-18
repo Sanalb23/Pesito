@@ -442,6 +442,13 @@
     gap: 10px;
 }
 
+.us-note {
+    margin-left: 6px;
+    color: var(--us-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
 .us-compare {
     width: 100%;
     max-width: 640px;

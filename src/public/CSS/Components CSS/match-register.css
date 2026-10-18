@@ -279,7 +279,7 @@
 
 .mr-meta {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 16px;
 }
 
@@ -349,7 +349,6 @@
     font-weight: bold;
 }
 
-
 .match-register-menu .mr-score input {
     width: 80px;
     height: 64px;
@@ -360,7 +359,7 @@
 }
 
 
-/* LAS FUCKING ESTADISTICAS */
+/* ESTADISTICAS */
 .mr-stats {
     width: 100%;
     max-width: 620px;
@@ -432,7 +431,7 @@
 }
 
 
-/* EL MODALSITO DE PARTIDO REGISTRADO */
+/* PASO 4: PARTIDO REGISTRADO */
 .mr-success-icon {
     font-size: 72px;
     color: var(--mr-yellow);
@@ -443,15 +442,25 @@
     font-weight: bold;
 }
 
+.mr-success-note {
+    color: var(--mr-muted);
+    line-height: 1.4;
+}
+
+.match-register-menu select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 
 /* PANTALLAS CHICAS */
 @media (max-width: 900px) {
     .mr-meta {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 700px) {
     .mr-meta {
         grid-template-columns: 1fr;
     }

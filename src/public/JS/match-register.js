@@ -15,6 +15,10 @@
     const STEP_NAMES = ['upload', 'loading', 'review', 'success'];
     const MAX_PHOTO_SIZE_MB = 10;
     const MAX_PHOTO_SIZE_BYTES = MAX_PHOTO_SIZE_MB * 1024 * 1024;
+    const GUEST_VALUE = 'guest';
+    const LAST_GAME_STORAGE_KEY = 'pesito:lastGameId';
+
+    const api = window.pesitoApi;
 
     const openRegisterLink = document.querySelector('#match-register');
 
@@ -45,6 +49,7 @@
     const confirmButton = document.querySelector('#confirm-match');
 
     const successSummary = document.querySelector('#success-summary');
+    const successNote = document.querySelector('#success-note');
     const registerAnotherButton = document.querySelector('#register-another-button');
 
     const state = {
@@ -52,8 +57,11 @@
         photoUrl: null,
         analysis: null,
         analysisRequestId: 0,
-        catalog: null,
-        friends: null,
+        teamsRequestId: 0,
+        teamGroups: [],
+        teamsFailed: false,
+        games: [],
+        friends: [],
         currentUser: null
     };
 
@@ -66,11 +74,33 @@
 
     function resetFlow() {
         state.analysisRequestId += 1;
+        state.teamsRequestId += 1;
         state.analysis = null;
         clearPhoto();
         setUploadError('');
         clearErrors();
         showStep('upload');
+    }
+
+    function getErrorMessage(error, fallback) {
+        const hasServerMessage = error && error.code && error.code !== 'HTTP_ERROR';
+        return hasServerMessage ? error.message : fallback;
+    }
+
+    function readLastGameId() {
+        try {
+            return window.localStorage.getItem(LAST_GAME_STORAGE_KEY) || '';
+        } catch (error) {
+            return '';
+        }
+    }
+
+    function saveLastGameId(gameId) {
+        try {
+            window.localStorage.setItem(LAST_GAME_STORAGE_KEY, gameId);
+        } catch (error) {
+            return;
+        }
     }
 
 
@@ -124,17 +154,13 @@
 
 
     async function loadReferenceData() {
-        if (state.catalog) {
-            return;
-        }
-
-        const [catalog, friends, currentUser] = await Promise.all([
-            matchApi.getCatalog(),
-            matchApi.getFriends(),
-            matchApi.getCurrentUser()
+        const [games, friends, currentUser] = await Promise.all([
+            api.games.getGames(),
+            api.friends.getFriends(),
+            api.session.getCurrentUser()
         ]);
 
-        state.catalog = catalog;
+        state.games = games;
         state.friends = friends;
         state.currentUser = currentUser;
     }
@@ -150,7 +176,7 @@
 
         try {
             const [analysis] = await Promise.all([
-                matchApi.analyzePhoto(state.photoFile),
+                api.analysis.analyzePhoto(state.photoFile),
                 loadReferenceData()
             ]);
 
@@ -158,15 +184,23 @@
                 return;
             }
 
-            fillReview(analysis);
+            state.analysis = analysis;
+            fillReviewFields();
+            await fillTeamSelects();
+
+            if (requestId !== state.analysisRequestId) {
+                return;
+            }
             showStep('review');
         } catch (error) {
+            console.error('Error al analizar la foto:', error);
+
             if (requestId !== state.analysisRequestId) {
                 return;
             }
 
             showStep('upload');
-            setUploadError('No se pudo analizar la foto. Inténtalo de nuevo o sube otra imagen.');
+            setUploadError(getErrorMessage(error, 'No se pudo analizar la foto. Inténtalo de nuevo o sube otra imagen.'));
         }
     }
 
@@ -187,13 +221,6 @@
         return value === '' ? null : Number(value);
     }
 
-    function getTodayAsInputValue() {
-        const now = new Date();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        return `${now.getFullYear()}-${month}-${day}`;
-    }
-
     function normalizeName(name) {
         return String(name || '')
             .normalize('NFD')
@@ -208,36 +235,63 @@
             new Option(placeholder, ''),
             ...options.map(({ value, label }) => new Option(label, value))
         );
+        select.disabled = false;
     }
 
-    function getTeamsOfSelectedGame() {
-        return state.catalog.teams_games.filter((teamGame) => String(teamGame.game_id) === gameSelect.value);
+    function fillGroupedSelect(select, placeholder, groups) {
+        const optionGroups = groups.map((group) => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = group.leagueName;
+            optgroup.append(...group.teams.map((team) => new Option(team.name, team.id)));
+            return optgroup;
+        });
+
+        select.replaceChildren(new Option(placeholder, ''), ...optionGroups);
+        select.disabled = false;
     }
 
-    function findTeamGame(detectedName, teamsOfGame) {
+    function disableTeamSelects(message) {
+        [homeTeamSelect, awayTeamSelect].forEach((select) => {
+            select.replaceChildren(new Option(message, ''));
+            select.disabled = true;
+            select.classList.remove('needs-attention');
+        });
+    }
+
+    function getAllTeams() {
+        return state.teamGroups.flatMap((group) => group.teams);
+    }
+
+    function findTeam(detectedName, teams) {
         const wanted = normalizeName(detectedName);
         if (!wanted) {
             return null;
         }
 
-        const exactMatch = teamsOfGame.find((teamGame) => normalizeName(teamGame.team_name) === wanted);
+        const exactMatch = teams.find((team) => normalizeName(team.name) === wanted);
         if (exactMatch) {
             return exactMatch;
         }
 
-        const partialMatches = teamsOfGame.filter((teamGame) => {
-            const candidate = normalizeName(teamGame.team_name);
+        const partialMatches = teams.filter((team) => {
+            const candidate = normalizeName(team.name);
             return candidate.includes(wanted) || wanted.includes(candidate);
         });
         return partialMatches.length === 1 ? partialMatches[0] : null;
     }
 
-    function selectDetectedTeam(select, detectedName, teamsOfGame) {
-        const teamGame = findTeamGame(detectedName, teamsOfGame);
-        select.value = teamGame ? String(teamGame.id) : '';
+    function selectDetectedTeam(select, detectedName, teams) {
+        const team = findTeam(detectedName, teams);
+        select.value = team ? String(team.id) : '';
     }
 
     function refreshTeamWarnings() {
+        if (state.teamsFailed) {
+            reviewNotice.hidden = false;
+            reviewNotice.textContent = 'No se pudieron cargar los equipos de este juego. Elige otro juego y vuelve a elegir este para reintentar.';
+            return;
+        }
+
         const teamChecks = [
             { select: homeTeamSelect, side: 'local', detectedName: state.analysis.home_team },
             { select: awayTeamSelect, side: 'visitante', detectedName: state.analysis.away_team }
@@ -258,17 +312,53 @@
             : '';
     }
 
-    function fillTeamSelects() {
-        const teamsOfGame = getTeamsOfSelectedGame();
-        const options = teamsOfGame.map((teamGame) => ({ value: teamGame.id, label: teamGame.team_name }));
+    async function fillTeamSelects() {
+        state.teamsRequestId += 1;
+        const requestId = state.teamsRequestId;
+        const gameId = gameSelect.value;
 
-        fillSelect(homeTeamSelect, 'Elige el equipo local', options);
-        fillSelect(awayTeamSelect, 'Elige el equipo visitante', options);
+        state.teamGroups = [];
+        state.teamsFailed = false;
 
-        selectDetectedTeam(homeTeamSelect, state.analysis.home_team, teamsOfGame);
-        selectDetectedTeam(awayTeamSelect, state.analysis.away_team, teamsOfGame);
+        if (gameId === '') {
+            disableTeamSelects('Elige primero el juego');
+            refreshTeamWarnings();
+            return;
+        }
+
+        disableTeamSelects('Cargando equipos...');
+
+        try {
+            const groups = await api.games.getTeamsOfGame(Number(gameId));
+
+            if (requestId !== state.teamsRequestId) {
+                return;
+            }
+
+            state.teamGroups = groups;
+            fillGroupedSelect(homeTeamSelect, 'Elige el equipo local', groups);
+            fillGroupedSelect(awayTeamSelect, 'Elige el equipo visitante', groups);
+
+            const teams = getAllTeams();
+            selectDetectedTeam(homeTeamSelect, state.analysis.home_team, teams);
+            selectDetectedTeam(awayTeamSelect, state.analysis.away_team, teams);
+        } catch (error) {
+            console.error('Error al cargar los equipos:', error);
+
+            if (requestId !== state.teamsRequestId) {
+                return;
+            }
+
+            state.teamsFailed = true;
+            disableTeamSelects('No se pudieron cargar los equipos');
+        }
 
         refreshTeamWarnings();
+    }
+
+    function handleGameChange() {
+        saveLastGameId(gameSelect.value);
+        fillTeamSelects();
     }
 
 
@@ -318,34 +408,35 @@
     }
 
 
-    function fillReview(analysis) {
+    function getInitialGameId() {
+        const lastGameId = readLastGameId();
+        const knownGame = state.games.find((game) => String(game.id) === lastGameId);
+
+        if (knownGame) {
+            return String(knownGame.id);
+        }
+        return state.games.length > 0 ? String(state.games[0].id) : '';
+    }
+
+    function fillReviewFields() {
         const fields = reviewForm.elements;
-        const today = getTodayAsInputValue();
-        const games = state.catalog.games;
+        const guestOption = { value: GUEST_VALUE, label: 'Invitado (sin cuenta)' };
+        const friendOptions = state.friends.map((friend) => ({ value: friend.id, label: friend.nickname }));
 
-        state.analysis = analysis;
-
-        fields.date.max = today;
-        fields.date.value = today;
-
-        fillSelect(gameSelect, 'Elige el juego', games.map((game) => ({
+        fillSelect(gameSelect, 'Elige el juego', state.games.map((game) => ({
             value: game.id,
             label: `${game.name} (${game.release_year})`
         })));
-        gameSelect.value = games.length > 0 ? String(games[0].id) : '';
+        gameSelect.value = getInitialGameId();
 
-        fillSelect(rivalSelect, 'Elige a tu rival', state.friends.map((friend) => ({
-            value: friend.id,
-            label: friend.nickname
-        })));
+        fillSelect(rivalSelect, 'Elige a tu rival', [...friendOptions, guestOption]);
 
         reviewForm.querySelector('input[name="my_side"][value="home"]').checked = true;
 
-        setCountField(fields.home_goals, analysis.home_goals);
-        setCountField(fields.away_goals, analysis.away_goals);
+        setCountField(fields.home_goals, state.analysis.home_goals);
+        setCountField(fields.away_goals, state.analysis.away_goals);
 
-        fillTeamSelects();
-        renderStats(analysis.stats || {});
+        renderStats(state.analysis.stats || {});
         clearErrors();
     }
 
@@ -359,7 +450,7 @@
         const fields = reviewForm.elements;
         const playedAsHome = reviewForm.querySelector('input[name="my_side"]:checked').value === 'home';
         const myId = state.currentUser.id;
-        const rivalId = toId(fields.rival_id.value);
+        const rivalId = fields.rival_id.value === GUEST_VALUE ? null : toId(fields.rival_id.value);
         const stats = {};
 
         MATCH_STATS.forEach(({ key }) => {
@@ -368,7 +459,6 @@
         });
 
         return {
-            date: fields.date.value,
             home_user_id: playedAsHome ? myId : rivalId,
             away_user_id: playedAsHome ? rivalId : myId,
             home_team_game_id: toId(fields.home_team_game_id.value),
@@ -383,12 +473,6 @@
         const fields = reviewForm.elements;
         const errors = [];
         const addError = (fieldNames, message) => errors.push({ fieldNames, message });
-
-        if (!data.date) {
-            addError(['date'], 'Indica la fecha del partido.');
-        } else if (data.date > getTodayAsInputValue()) {
-            addError(['date'], 'La fecha no puede ser futura.');
-        }
 
         if (fields.game_id.value === '') {
             addError(['game_id'], 'Elige el juego.');
@@ -457,7 +541,7 @@
 
     function setConfirming(isConfirming) {
         confirmButton.disabled = isConfirming;
-        confirmButton.textContent = isConfirming ? 'Guardando...' : 'Confirmar partido';
+        confirmButton.textContent = isConfirming ? 'Enviando...' : 'Confirmar partido';
     }
 
     function buildSummary(data) {
@@ -466,8 +550,30 @@
         return `${homeName} ${data.home_goals} - ${data.away_goals} ${awayName}`;
     }
 
+    function buildSuccessNote() {
+        if (rivalSelect.value === GUEST_VALUE) {
+            return '';
+        }
+        const rivalName = rivalSelect.selectedOptions[0].text;
+        return `Le avisamos a ${rivalName}. El partido queda registrado cuando lo confirme.`;
+    }
+
+    function showSuccess(matchData) {
+        const note = buildSuccessNote();
+
+        successSummary.textContent = buildSummary(matchData);
+        successNote.textContent = note;
+        successNote.hidden = note === '';
+        showStep('success');
+    }
+
     async function handleReviewSubmit(event) {
         event.preventDefault();
+
+        if (state.teamsFailed) {
+            showErrors([{ fieldNames: [], message: 'No se pudieron cargar los equipos. Cambia de juego para reintentar.' }]);
+            return;
+        }
 
         const matchData = collectMatchData();
         const errors = validateMatchData(matchData);
@@ -481,11 +587,11 @@
         setConfirming(true);
 
         try {
-            await matchApi.saveMatch(matchData);
-            successSummary.textContent = buildSummary(matchData);
-            showStep('success');
+            await api.matches.createMatch(matchData);
+            showSuccess(matchData);
         } catch (error) {
-            showErrors([{ fieldNames: [], message: 'No se pudo guardar el partido. Inténtalo de nuevo.' }]);
+            console.error('Error al enviar el partido:', error);
+            showErrors([{ fieldNames: [], message: getErrorMessage(error, 'No se pudo enviar el partido. Inténtalo de nuevo.') }]);
         } finally {
             setConfirming(false);
         }
@@ -540,7 +646,7 @@
     photoInput.addEventListener('change', handlePhotoInputChange);
     analyzeButton.addEventListener('click', analyzePhoto);
 
-    gameSelect.addEventListener('change', fillTeamSelects);
+    gameSelect.addEventListener('change', handleGameChange);
     homeTeamSelect.addEventListener('change', refreshTeamWarnings);
     awayTeamSelect.addEventListener('change', refreshTeamWarnings);
     reviewForm.addEventListener('input', clearFieldFlags);
