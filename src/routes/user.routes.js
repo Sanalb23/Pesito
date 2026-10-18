@@ -1,5 +1,5 @@
 const express = require("express");
-const { searchByNickname } = require("../controllers/user.controller");
+const { searchByNickname, getMyStats, getUserStats } = require("../controllers/user.controller");
 const { verifyToken } = require("../middlewares/auth");
 const {
     getMyMatches,
@@ -11,7 +11,9 @@ const router = express.Router();
 router.get("/search", verifyToken, searchByNickname);
 
 router.get("/me/matches", verifyToken, getMyMatches);
+router.get("/me/stats", verifyToken, getMyStats);
 
 router.get("/:userId/matches", verifyToken, getMatchesByUserId);
+router.get("/:userId/stats", verifyToken, getUserStats);
 
 module.exports = router;

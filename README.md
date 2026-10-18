@@ -63,7 +63,9 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
 | **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial de partidos del usuario autenticado. |
+| **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
 | **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial de partidos de un usuario específico. |
+| **User** | `GET` | `/users/:userId/stats` | **Sí** | Obtiene las estadísticas globales y métricas de un usuario específico. |
 | **Game** | `GET` | `/games` | No | Obtiene la lista de todos los juegos registrados. |
 | **Game** | `GET` | `/games/:gameId/leagues` | No | Obtiene las ligas asociadas a un juego. |
 | **Game** | `GET` | `/games/:gameId/leagues/:leagueId/teams` | No | Obtiene los equipos de una liga y juego específicos. |
@@ -321,6 +323,145 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 - **`500 Internal Server Error`**:
   ```json
   { "error": "GET_MATCHES_ERROR", "message": "Error al obtener los partidos" }
+  ```
+
+---
+
+### 2.4 Obtener Estadísticas del Usuario Autenticado
+- **Ruta:** `GET /users/me/stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas del usuario obtenidas correctamente.
+  ```json
+  {
+    "message": "Estadísticas del usuario obtenidas",
+    "data": {
+      "user": {
+        "id": 1,
+        "nickname": "jugador1"
+      },
+      "stats": {
+        "matches_played": 10,
+        "wins": 6,
+        "draws": 2,
+        "losses": 2,
+        "goals_for": 18,
+        "goals_against": 10,
+        "goal_difference": 8,
+        "average_goals_for": 1.80,
+        "average_goals_against": 1.00,
+        "win_rate": 60.00,
+        "possession_average": 54.50,
+        "shots": 85,
+        "shots_on_target": 42,
+        "penalties": 1,
+        "free_kicks": 12,
+        "corner_kicks": 35,
+        "offsides": 8,
+        "fouls": 15,
+        "yellow_cards": 4,
+        "red_cards": 0,
+        "opponent_possession_average": 45.50,
+        "opponent_shots": 60,
+        "opponent_shots_on_target": 25,
+        "opponent_penalties": 0,
+        "opponent_free_kicks": 15,
+        "opponent_corner_kicks": 20,
+        "opponent_offsides": 5,
+        "opponent_fouls": 12,
+        "opponent_yellow_cards": 6,
+        "opponent_red_cards": 1
+      }
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado en la base de datos.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MY_STATS_ERROR", "message": "Error al obtener las estadísticas del usuario" }
+  ```
+
+---
+
+### 2.5 Obtener Estadísticas de un Usuario por ID
+- **Ruta:** `GET /users/:userId/stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID numérico positivo del usuario. |
+
+**Ejemplo de Petición:** `GET /users/5/stats`
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas del usuario obtenidas correctamente.
+  ```json
+  {
+    "message": "Estadísticas del usuario obtenidas",
+    "data": {
+      "user": {
+        "id": 5,
+        "nickname": "jugadorPro"
+      },
+      "stats": {
+        "matches_played": 5,
+        "wins": 3,
+        "draws": 1,
+        "losses": 1,
+        "goals_for": 10,
+        "goals_against": 6,
+        "goal_difference": 4,
+        "average_goals_for": 2.00,
+        "average_goals_against": 1.20,
+        "win_rate": 60.00,
+        "possession_average": 52.00,
+        "shots": 40,
+        "shots_on_target": 22,
+        "penalties": 0,
+        "free_kicks": 5,
+        "corner_kicks": 14,
+        "offsides": 3,
+        "fouls": 8,
+        "yellow_cards": 2,
+        "red_cards": 0,
+        "opponent_possession_average": 48.00,
+        "opponent_shots": 30,
+        "opponent_shots_on_target": 12,
+        "opponent_penalties": 1,
+        "opponent_free_kicks": 7,
+        "opponent_corner_kicks": 9,
+        "opponent_offsides": 2,
+        "opponent_fouls": 6,
+        "opponent_yellow_cards": 3,
+        "opponent_red_cards": 0
+      }
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_STATS_ERROR", "message": "Error al obtener las estadísticas del usuario" }
   ```
 
 ---
