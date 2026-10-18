@@ -1,64 +1,89 @@
-// ================================
-// TRANSICION ENTRE SECCIONES DEL MENU (FADE-OUT / FADE-IN)
-// ================================
+const FADE_DURATION_MS = 400;
+const FADE_OUT_CLASS = 'fade-out';
+const HIDDEN_CLASS = 'hidden';
 
-// Debe coincidir con la duracion definida en la transicion CSS (0.4s)
-const FADE_DURATION = 400;
-
-// Elementos de cada "ventana" del menu
 const mainMenu = document.querySelector('.main-menu-container');
 const matchRegisterMenu = document.querySelector('.match-register-menu');
 const matchRegisterContent = document.querySelector('.match-register-content');
+const userStatsMenu = document.querySelector('.user-stats-menu');
+const userStatsContent = document.querySelector('.user-stats-content');
+const friendsBackdrop = document.querySelector('.modal-backdrop');
 
-// Botones que disparan el cambio
-const matchRegisterBtn = document.querySelector('#match-register');
-const backButton = document.querySelector('#back-to-menu');
+const openMatchRegisterButton = document.querySelector('#match-register');
+const backToMenuButton = document.querySelector('#back-to-menu');
+const openUserStatsButton = document.querySelector('#user-stats');
+const backFromStatsButton = document.querySelector('#back-from-stats');
+const openFriendsButton = document.getElementById('user-friends');
+const closeFriendsButton = document.getElementById('close-friends-modal');
 
-/**
- * Cambia de una seccion a otra con fade-out + fade-in.
- *
- * hideEl / showEl        -> el elemento que tiene la clase "fade-out" (el que se ve, la tarjeta/contenido)
- * hideContainer / showContainer -> el elemento al que se le cambia el display (puede ser el mismo que hideEl/showEl,
- *                                   como pasa con mainMenu que es contenido y contenedor a la vez)
- */
-function switchSections(hideEl, hideContainer, showEl, showContainer) {
-    // 1. Fade-out de la seccion visible (esto SOLO anima la opacidad)
-    hideEl.classList.add('fade-out');
 
-    // 2. Esperamos a que termine la animacion de opacidad antes de sacarla
-    //    de la pantalla. Si hicieramos display:none al mismo tiempo que
-    //    opacity:0, el navegador ni siquiera llega a mostrar la animacion.
+function startFadeOut(content) {
+    content.classList.add(FADE_OUT_CLASS);
+}
+
+function startFadeIn(content) {
+    void content.offsetWidth;
+    content.classList.remove(FADE_OUT_CLASS);
+}
+
+function hideContainer(container) {
+    container.style.display = 'none';
+}
+
+function showContainer(container) {
+    container.style.display = 'flex';
+}
+
+function switchSections(visibleContent, visibleContainer, nextContent, nextContainer) {
+    startFadeOut(visibleContent);
+
     setTimeout(() => {
-        hideContainer.style.display = 'none';
-
-        // 3. Mostramos el nuevo contenedor, pero arrancamos su contenido
-        //    en opacidad 0 (le agregamos la misma clase fade-out)
-        showContainer.style.display = 'flex';
-        showEl.classList.add('fade-out');
-
-        // 4. Forzamos un "reflow": le pedimos al navegador una propiedad
-        //    (offsetWidth) para que aplique el estado "opacity: 0" antes
-        //    de que le saquemos la clase. Sin esto, el navegador agrupa
-        //    los dos cambios y no se ve el fade-in.
-        void showEl.offsetWidth;
-
-        // 5. Sacamos la clase -> como hay "transition: opacity" en el CSS,
-        //    esto anima de 0 a 1 (fade-in)
-        showEl.classList.remove('fade-out');
-    }, FADE_DURATION);
+        hideContainer(visibleContainer);
+        showContainer(nextContainer);
+        startFadeOut(nextContent);
+        startFadeIn(nextContent);
+    }, FADE_DURATION_MS);
 }
 
-// Ir de "Menu Principal" a "Registrar Partido"
-matchRegisterBtn.addEventListener('click', () => {
+function openFriendsModal(event) {
+    event.preventDefault();
+    friendsBackdrop.classList.remove(HIDDEN_CLASS);
+}
+
+function closeFriendsModal() {
+    friendsBackdrop.classList.add(HIDDEN_CLASS);
+}
+
+function goToMatchRegister(event) {
+    event.preventDefault();
     switchSections(mainMenu, mainMenu, matchRegisterContent, matchRegisterMenu);
-});
-
-// Volver de "Registrar Partido" a "Menu Principal"
-if (backButton) {
-    backButton.addEventListener('click', () => {
-        switchSections(matchRegisterContent, matchRegisterMenu, mainMenu, mainMenu);
-    });
 }
-// NOTA: "user-stats", "user-friends" y "log-out" todavia no tienen
-// una seccion propia en el HTML. Cuando la agregues, podes reusar
-// switchSections() exactamente igual que arriba.
+
+function goBackToMainMenu() {
+    switchSections(matchRegisterContent, matchRegisterMenu, mainMenu, mainMenu);
+}
+
+function goToUserStats(event) {
+    event.preventDefault();
+    switchSections(mainMenu, mainMenu, userStatsContent, userStatsMenu);
+}
+
+function goBackFromUserStats() {
+    switchSections(userStatsContent, userStatsMenu, mainMenu, mainMenu);
+}
+
+
+openMatchRegisterButton.addEventListener('click', goToMatchRegister);
+
+if (backToMenuButton) {
+    backToMenuButton.addEventListener('click', goBackToMainMenu);
+}
+
+openUserStatsButton.addEventListener('click', goToUserStats);
+
+if (backFromStatsButton) {
+    backFromStatsButton.addEventListener('click', goBackFromUserStats);
+}
+
+openFriendsButton.addEventListener('click', openFriendsModal);
+closeFriendsButton.addEventListener('click', closeFriendsModal);

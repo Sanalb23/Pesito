@@ -6,123 +6,393 @@
     <title>Menu Principal | Pesito</title>
     <link rel="stylesheet" href="src/public/CSS/main.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/buttons.css">
-    <link rel="stylesheet" href="src/public/CSS/Components CSS/hints-slider.css">
-    <link rel="stylesheet" href="src/public/CSS/Components CSS/stats.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/friends.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/match-register.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/user-stats.css">
     <link rel="icon" type="image/png" href="src/public/Icons/proevolutionsoccerlogo.ico">
+    <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <main>
-        <section class="main-menu-container">
-            <div class="logo-container">
-                <div class="logo">
-                    <img src="src/public/Logos/proevolutionsoccer-fulllogo.png">
-                </div>
-                <div class="separate"></div>
-                <div class="platform-name">
-                    <div class="game-name-logo">
-                        <img src="src/public/Images/BIENVENIDO A PESITO.png">
-                    </div>
-                </div>
+    <header>
+        <div class="logo-container">
+            <div class="pes-logo">
+                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png">
             </div>
-
-            <div class="menu-options-container">
-                <div class="menu-indicator">
-                    <h1>MENU PRINCIPAL</h1>
-                    <hr>
-                </div>
-                <div class="menu-options-list">
-                    <button class="menu-buttons" id="match-register">REGISTRAR PARTIDO</button>
-                    <button class="menu-buttons" id="user-stats">MIS ESTADISTICAS</button>
-                    <button class="menu-buttons" id="user-friends">MIS AMIGOS</button>
-                    <button class="menu-buttons" id="log-out">CERRAR SESION</button>
-                </div>
+            <div class="separate"></div>
+            <div class="pesito-logo">
+                <img src="src/public/Images/BIENVENIDO A PESITO.png">
             </div>
-        </section>
-
-        <section class="match-register-menu">
-            <div class="match-register-content">
-                <button class="menu-buttons back-button" id="back-to-menu">&larr; Volver</button>
-
-                <div class="instructions">
-                    <h2>Ingresa a PES 6, juega un partido, y luego con tu dispositivo toma una captura de los resultados y adjuntalos en el cuadro que aparece a continuacion.</h2>
-                </div>
-
-                <div class="match-results">
-                    <input type="file" accept="image/.png,.jpg,.webp">
-                </div>
-
-                <div class="analize-button-container">
-                    <button class="analize-button">Analizar resultados</button>
-                </div>
-            </div>
-        </section>
-
-        <section class="my-stats" aria-hidden="true">
-            <button class="stats-back" id="stats-back-to-menu" type="button">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 3 6 12l9 9"/></svg>
-                Volver al menu
-            </button>
-
-            <h2 class="stats-title">MIS <span>ESTADISTICAS</span></h2>
-
-            <div class="stats-content">
-                <div class="stats-rings">
-                    <div class="ring-block">
-                        <div class="ring" data-ring="level">
-                            <svg viewBox="0 0 200 200" aria-hidden="true">
-                                <defs>
-                                    <linearGradient id="ring-grad-level" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="200">
-                                        <stop offset="0" stop-color="#ffcc00" stop-opacity="1"/>
-                                        <stop offset="0.6" stop-color="#ffcc00" stop-opacity="1"/>
-                                        <stop offset="1" stop-color="#ffcc00" stop-opacity="0"/>
-                                    </linearGradient>
-                                </defs>
-                                <path class="ring-arc" pathLength="100" stroke="url(#ring-grad-level)"
-                                    d="M100 6 A94 94 0 0 1 100 194 A94 94 0 0 1 100 6"/>
-                            </svg>
-                            <span class="ring-value" data-stat="level">99</span>
-                        </div>
-                        <span class="ring-label">Nivel de jugador</span>
-                    </div>
-
-                    <div class="ring-block">
-                        <div class="ring" data-ring="ratio">
-                            <svg viewBox="0 0 200 200" aria-hidden="true">
-                                <defs>
-                                    <linearGradient id="ring-grad-ratio" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="0" y2="200">
-                                        <stop offset="0" stop-color="#ffcc00" stop-opacity="1"/>
-                                        <stop offset="0.6" stop-color="#ffcc00" stop-opacity="1"/>
-                                        <stop offset="1" stop-color="#ffcc00" stop-opacity="0"/>
-                                    </linearGradient>
-                                </defs>
-                                <path class="ring-arc" pathLength="100" stroke="url(#ring-grad-ratio)"
-                                    d="M100 6 A94 94 0 0 1 100 194 A94 94 0 0 1 100 6"/>
-                            </svg>
-                            <span class="ring-value" data-stat="ratio">1.01</span>
-                        </div>
-                        <span class="ring-label">Ratio V/D</span>
-                    </div>
-                </div>
-
-                <div class="stats-divider" aria-hidden="true"></div>
-
-                <ul class="stats-list">
-                    <li>Partidos jugados: <span data-stat="played">2</span></li>
-                    <li>Partidos ganados: <span data-stat="won">2</span></li>
-                    <li>Partidos perdidos: <span data-stat="lost">2</span></li>
-                </ul>
-            </div>
-        </section>
-
-
-        <!-- MODAL DE AMIGOS -->
-
-        <!--2D0 PARCIAL DE SISTEMAS DE INFORMACION EMPRESARIAL: DOCUMENTOS COMERCIALES, SISTEMAS DE COSTOS, FUNCION DE AREA COMPRA.-->
-        <div class="hints-slider" id="hints-slider">
-            <p id="hint">Hola, estos son los consejos de PESITO. Echales un ojo de vez en cuando para saber como funciona la plataforma.</p>
         </div>
+
+        <nav>
+            <a href="" title="Mi cuenta"><i class="ph ph-user-circle"></i></a>
+            <a href="" title="Musica"><i class="ph ph-music-note"></i></a>
+            <a href="" title="Notificaciones"><i class="ph ph-bell"></i></a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="main-hero">
+
+            <div class="hero-overlay"></div>
+
+            <div class="menu-buttons-and-hints main-menu-container">
+                <div class="menu-options">
+                    <a href="" id="my-matches">Mis partidos</a>
+                    <a href="" id="match-register">Registrar partido</a>
+                    <a href="" id="user-stats">Mis estadisticas</a>
+                    <a href="" id="user-friends">Mis amigos</a>
+                    <a href="" id="leagues-and-teams">Equipos y ligas</a>
+                    <a href="" id="log-out">Cerrar sesion</a>
+                </div>
+            </div>
+
+            <!-- REGISTRAR PARTIDO -->
+            <div class="match-register-menu">
+                <div class="match-register-content">
+                    <button type="button" class="menu-buttons back-button" id="back-to-menu"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+
+                    <!-- PASO 1: INSTRUCTIVO Y SUBIDA DE LA FOTO -->
+                    <section class="mr-card" id="step-upload">
+                        <h2>Registrar <span>partido</span></h2>
+
+                        <ol class="mr-instructions">
+                            <li><p>Al terminar el partido, deja abierta la pantalla de <strong>Resultado</strong>, la que muestra el marcador y las estadísticas.</p></li>
+                            <li><p>Toma una foto donde se vea <strong>todo el marcador y todas las estadísticas</strong>, derecha y sin reflejos.</p></li>
+                            <li><p>Sube la foto aquí y presiona <strong>Analizar resultados</strong>. Podrás revisar y corregir los datos antes de guardar.</p></li>
+                        </ol>
+
+                        <input type="file" id="result-photo-input" accept="image/*" hidden>
+                        <div class="mr-dropzone" id="dropzone" role="button" tabindex="0" aria-label="Seleccionar la foto de los resultados">
+                            <div class="mr-dropzone-empty" id="dropzone-empty">
+                                <i class="ph ph-upload-simple"></i>
+                                <p>Arrastra la foto aquí o haz clic para elegirla</p>
+                                <small>JPG o PNG, máximo 10 MB</small>
+                            </div>
+                            <img id="photo-preview" alt="Vista previa de la foto de resultados" hidden>
+                        </div>
+
+                        <p class="mr-error" id="upload-error" role="alert" hidden></p>
+
+                        <div class="mr-actions">
+                            <button type="button" class="analize-button" id="analyze-button" disabled>Analizar resultados</button>
+                        </div>
+                    </section>
+
+                    <!-- PASO 2: ANALIZANDO -->
+                    <section class="mr-card mr-card-center" id="step-loading" role="status" aria-live="polite" hidden>
+                        <div class="mr-spinner"></div>
+                        <h2>Analizando <span>resultados</span></h2>
+                        <p>Estamos leyendo el marcador y las estadísticas de tu foto. Esto toma unos segundos.</p>
+                    </section>
+
+                    <!-- PASO 3: REVISION DE LOS RESULTADOS -->
+                    <section class="mr-card" id="step-review" hidden>
+                        <h2>Revisa los <span>resultados</span></h2>
+                        <p class="mr-hint">Estos son los datos que se leyeron de tu foto. Corrige lo que haga falta antes de confirmar.</p>
+
+                        <p class="mr-notice" id="review-notice" hidden></p>
+
+                        <form id="review-form" novalidate>
+                            <div class="mr-meta">
+                                <label class="mr-field">
+                                    <span>Fecha</span>
+                                    <input type="date" name="date" id="match-date">
+                                </label>
+
+                                <label class="mr-field">
+                                    <span>Juego</span>
+                                    <select name="game_id" id="game-select"></select>
+                                </label>
+
+                                <fieldset class="mr-field">
+                                    <legend>Jugué como</legend>
+                                    <div class="mr-radio-group">
+                                        <label class="mr-radio">
+                                            <input type="radio" name="my_side" value="home" checked>
+                                            <span>Local</span>
+                                        </label>
+                                        <label class="mr-radio">
+                                            <input type="radio" name="my_side" value="away">
+                                            <span>Visitante</span>
+                                        </label>
+                                    </div>
+                                </fieldset>
+
+                                <label class="mr-field">
+                                    <span>Rival</span>
+                                    <select name="rival_id" id="rival-select"></select>
+                                </label>
+                            </div>
+
+                            <div class="mr-scoreboard">
+                                <div class="mr-side">
+                                    <span class="mr-side-label">Local</span>
+                                    <select name="home_team_game_id" id="home-team-select" aria-label="Equipo local"></select>
+                                </div>
+
+                                <div class="mr-score">
+                                    <input type="number" name="home_goals" min="0" step="1" inputmode="numeric" aria-label="Goles del local">
+                                    <span>-</span>
+                                    <input type="number" name="away_goals" min="0" step="1" inputmode="numeric" aria-label="Goles del visitante">
+                                </div>
+
+                                <div class="mr-side">
+                                    <span class="mr-side-label">Visitante</span>
+                                    <select name="away_team_game_id" id="away-team-select" aria-label="Equipo visitante"></select>
+                                </div>
+                            </div>
+
+                            <div class="mr-stats">
+                                <h3>Estadísticas</h3>
+                                <div class="stat-row stat-row-head">
+                                    <span>Local</span>
+                                    <span></span>
+                                    <span>Visitante</span>
+                                </div>
+                                <div id="stats-list"></div>
+                            </div>
+
+                            <div class="mr-errors" id="review-errors" role="alert" hidden>
+                                <ul id="review-errors-list"></ul>
+                            </div>
+
+                            <div class="mr-actions mr-actions-split">
+                                <button type="button" class="menu-buttons back-button" id="back-to-upload"><i class="ph ph-arrow-left"></i>&nbsp;Cambiar foto</button>
+                                <button type="submit" class="analize-button" id="confirm-match">Confirmar partido</button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- PASO 4: PARTIDO REGISTRADO -->
+                    <section class="mr-card mr-card-center" id="step-success" hidden>
+                        <i class="ph ph-check-circle mr-success-icon"></i>
+                        <h2>¡Partido <span>registrado!</span></h2>
+                        <p class="mr-summary" id="success-summary"></p>
+                        <div class="mr-actions">
+                            <button type="button" class="analize-button" id="register-another-button">Registrar otro partido</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+
+            <!-- MIS ESTADISTICAS -->
+            <div class="user-stats-menu">
+                <div class="user-stats-content">
+                    <button type="button" class="menu-buttons back-button" id="back-from-stats"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+
+                    <!-- CARGANDO -->
+                    <section class="us-card us-card-center" id="us-loading" role="status" aria-live="polite" hidden>
+                        <div class="us-spinner"></div>
+                        <h2>Cargando tus <span>estadísticas</span></h2>
+                    </section>
+
+                    <!-- ERROR -->
+                    <section class="us-card us-card-center" id="us-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle us-error-icon"></i>
+                        <h2>No se pudieron <span>cargar</span></h2>
+                        <p>Hubo un problema al traer tus estadísticas. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="us-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- SIN PARTIDOS TODAVIA -->
+                    <section class="us-card us-card-center" id="us-empty" hidden>
+                        <i class="ph ph-soccer-ball us-empty-icon"></i>
+                        <h2>Todavía no hay <span>partidos</span></h2>
+                        <p>Registra tu primer partido para empezar a ganar experiencia y ver tus estadísticas.</p>
+                    </section>
+
+                    <!-- ESTADISTICAS -->
+                    <div class="us-dashboard" id="us-dashboard" hidden>
+
+                        <!-- PERFIL, NIVEL Y EXPERIENCIA -->
+                        <section class="us-card us-profile">
+                            <div class="us-avatar">
+                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="">
+                            </div>
+
+                            <div class="us-profile-info">
+                                <h2>Mis <span>estadísticas</span></h2>
+                                <p class="us-nickname" data-field="nickname"></p>
+
+                                <div class="us-level">
+                                    <span class="us-level-badge" data-field="level_label"></span>
+                                    <div class="us-xp-bar" id="us-xp-bar" role="progressbar" aria-label="Experiencia del nivel actual" aria-valuemin="0">
+                                        <div class="us-xp-fill" id="us-xp-fill"></div>
+                                    </div>
+                                    <div class="us-xp-text">
+                                        <span data-field="xp_progress"></span>
+                                        <span data-field="xp_remaining"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="us-total-xp">
+                                <strong data-field="total_xp"></strong>
+                                <span>XP totales</span>
+                            </div>
+                        </section>
+
+                        <!-- RESUMEN -->
+                        <div class="us-kpis">
+                            <article class="us-kpi">
+                                <span class="us-kpi-label">Partidos</span>
+                                <strong class="us-kpi-value" data-field="matches"></strong>
+                            </article>
+                            <article class="us-kpi us-win">
+                                <span class="us-kpi-label">Victorias</span>
+                                <strong class="us-kpi-value" data-field="wins"></strong>
+                            </article>
+                            <article class="us-kpi us-draw">
+                                <span class="us-kpi-label">Empates</span>
+                                <strong class="us-kpi-value" data-field="draws"></strong>
+                            </article>
+                            <article class="us-kpi us-loss">
+                                <span class="us-kpi-label">Derrotas</span>
+                                <strong class="us-kpi-value" data-field="losses"></strong>
+                            </article>
+                            <article class="us-kpi">
+                                <span class="us-kpi-label">% de victorias</span>
+                                <strong class="us-kpi-value" data-field="win_rate"></strong>
+                            </article>
+                            <article class="us-kpi">
+                                <span class="us-kpi-label">Mejor racha</span>
+                                <strong class="us-kpi-value" data-field="best_streak"></strong>
+                            </article>
+                        </div>
+
+                        <div class="us-grid">
+                            <!-- RESULTADOS Y GOLES -->
+                            <section class="us-card us-results">
+                                <h3>Resultados</h3>
+
+                                <div class="us-result-bar" id="us-result-bar" role="img">
+                                    <span class="us-result-win" data-bar="wins"></span>
+                                    <span class="us-result-draw" data-bar="draws"></span>
+                                    <span class="us-result-loss" data-bar="losses"></span>
+                                </div>
+
+                                <ul class="us-legend">
+                                    <li><i class="us-dot us-win"></i>Victorias <strong data-field="wins"></strong></li>
+                                    <li><i class="us-dot us-draw"></i>Empates <strong data-field="draws"></strong></li>
+                                    <li><i class="us-dot us-loss"></i>Derrotas <strong data-field="losses"></strong></li>
+                                </ul>
+
+                                <div class="us-goals">
+                                    <div>
+                                        <strong data-field="goals_for"></strong>
+                                        <span>Goles a favor</span>
+                                    </div>
+                                    <div>
+                                        <strong data-field="goals_against"></strong>
+                                        <span>Goles en contra</span>
+                                    </div>
+                                    <div>
+                                        <strong data-field="goal_difference"></strong>
+                                        <span>Diferencia</span>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <!-- ULTIMOS PARTIDOS -->
+                            <section class="us-card us-recent">
+                                <h3>Últimos partidos</h3>
+                                <ol class="us-recent-list" id="us-recent-list"></ol>
+                            </section>
+                        </div>
+
+                        <!-- PROMEDIOS POR PARTIDO -->
+                        <section class="us-card us-averages">
+                            <div class="us-averages-head">
+                                <h3>Promedios por partido</h3>
+                                <ul class="us-legend">
+                                    <li><i class="us-dot us-mine"></i>Tú</li>
+                                    <li><i class="us-dot us-rival"></i>Tus rivales</li>
+                                </ul>
+                            </div>
+
+                            <div class="us-compare" id="us-compare"></div>
+                        </section>
+
+                        <!-- FAVORITOS -->
+                        <div class="us-favorites">
+                            <article class="us-favorite">
+                                <i class="ph ph-soccer-ball"></i>
+                                <div>
+                                    <span class="us-favorite-label">Equipo más usado</span>
+                                    <strong data-field="favorite_team"></strong>
+                                    <small data-field="favorite_team_count"></small>
+                                </div>
+                            </article>
+                            <article class="us-favorite">
+                                <i class="ph ph-game-controller"></i>
+                                <div>
+                                    <span class="us-favorite-label">Juego más jugado</span>
+                                    <strong data-field="favorite_game"></strong>
+                                    <small data-field="favorite_game_count"></small>
+                                </div>
+                            </article>
+                            <article class="us-favorite">
+                                <i class="ph ph-users"></i>
+                                <div>
+                                    <span class="us-favorite-label">Rival frecuente</span>
+                                    <strong data-field="favorite_rival"></strong>
+                                    <small data-field="favorite_rival_count"></small>
+                                </div>
+                            </article>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
     </main>
+
+    <!-- MODAL DE AMIGOS -->
+    <div class="modal-backdrop hidden" id="friends-backdrop">
+        <div class="friends-modal">
+            <button type="button" class="menu-buttons back-button" id="close-friends-modal"><i class="ph ph-arrow-left"></i>&nbsp;Volver</button>
+            <div class="friends-modal-title">
+                <h2>Mis <span>Amigos</span></h2>
+            </div>
+            <form id="friend-search-form" onsubmit="event.preventDefault();">
+                <div class="search-container">
+                    <i class="ph ph-user"></i>
+                    <div class="search-div">
+                        <input type="text" id="friend-search-input" placeholder="Buscar amigo...">
+                        <button type="submit" class="search-friend"><i class="ph ph-magnifying-glass"></i></button>
+                    </div>
+                </div>
+            </form>
+            <hr>
+            <div class="friends-container">
+                <div class="user-profile">
+                    <div class="profile-name-status">
+                        <div class="online-status"></div>
+                        <div class="picture-and-username">
+                            <div class="user-picture">
+                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="">
+                            </div>
+                            <p>ITsF4CU</p>
+                        </div>
+                    </div>
+                    <div class="see-profile">
+                        <button>Ver perfil</button>
+                    </div>
+                </div>
+            </div>
+            <div class="search-people">
+                <button>Buscar jugadores</button>
+            </div>
+        </div>
+    </div>
     <script src="src/public/JS/menu-transition.js"></script>
+    <script src="src/public/JS/match-register-api.js"></script>
+    <script src="src/public/JS/match-register.js"></script>
+    <script src="src/public/JS/user-stats-api.js"></script>
+    <script src="src/public/JS/user-stats.js"></script>
     <script src="src/public/JS/stats.js"></script>
 </body>
 </html>

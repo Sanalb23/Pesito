@@ -1,0 +1,199 @@
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro semitransparente */
+    backdrop-filter: blur(4px);             /* Efecto borroso (capaz se les laguee) estilo juego */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* LA CLASE PARA MANIPULAR LA APARICION DEL MODAL EN EL JEIES */
+.modal-backdrop.hidden {
+    display: none;
+}
+
+
+/* MODAL DE AMIGOS */
+.friends-modal {
+    position: absolute;
+    top: 25%;
+    left: 40%;
+    width: 500px;
+    height: 520px;
+    max-height: 80vh;
+    padding: 30px;
+    background-color: rgb(31, 31, 31);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-radius: 20px;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+/* EL TITULO DEL MODAL EVIDENTEMENTE */
+.friends-modal-title {
+    width: 100%;
+    font-family: 'Montserrat';
+    color: white;
+}
+
+/* EL RESALTADO DE UNA PALABRA DEL MODAL */
+.friends-modal-title span {
+    color: yellow
+}
+
+/* CREO QUE ESTO ERA EL CONTENEDOR DEL FORMULARIO DENTRO DEL MODAL XD */
+.friend-search-form {
+    width: 100%;
+}
+
+/* ESTE ES EL CONTENEDOR DE LA BARRA DE BUSQUEDA DENTRO DEL MODAL DE LOS AMIGUIS */
+.search-container {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+/* OTRO CONTENEDOR DE LA BARRA DE BUSQUEDA QUE HONESTAMENTE NO RECUERDO COMO ERA */
+.search-div {
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+/* ACA ESTA EL INPUT SI SEÑOR */
+#friend-search-input {
+    width: 90%;
+    height: 30px;
+    background: none;
+    border: none;
+    background-color: rgb(185, 185, 185);
+    padding: 0 10px
+}
+
+/* EL ICONITO DEL USUARIO A LA PAR DEL INPUT PARA BUSCAR A LOS AMIGOS, UNA ILUSTRACION MAS QUE NADA */
+.ph-user {
+    color: white;
+    font-size: 20px
+}
+
+/* EL BOTON PARA BUSCAR AMIGOS EN LA BASE DE DATOS */
+.search-friend {
+    width: 40px;
+    background: none;
+    border: none;
+    background-color: yellow;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 7px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+/* EL CONTENEDOR DONDE SE SUPONE QUE SE TIENE QUE RENDERIZAR CADA CARD DE LOS AMIGOS */
+.friends-container {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    padding-bottom: 30px;
+}
+
+/* CARDS DE AMIGOS */
+.user-profile {
+    width: 100%;
+    min-height: 60px;
+    background-color: rgb(70, 70, 68);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    border-radius: 20px;
+    flex-shrink: 0;
+}
+
+
+.profile-name-status {
+    display: flex;
+    align-items: center;
+    gap: 10px
+}
+
+.online-status {
+    width: 10px;
+    height: 10px;
+    background-color: green;
+    border-radius: 50px
+}
+
+.user-picture {
+    max-width: 40px;
+    height: auto
+}
+
+.user-picture img {
+    width: 100%
+}
+
+.picture-and-username {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    color: white
+}
+
+.see-profile button {
+    background: none;
+    border: none;
+    background-color: yellow;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+}
+
+.see-profile button:hover {
+    box-shadow: 0 0 20px yellow
+}
+
+/* SEARCH PEOPLE */
+.search-people {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.search-people button {
+    background: none;
+    border: none;
+    background-color: rgb(155, 155, 0);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 5px 15px;
+    border-radius: 20px;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.search-people button:hover {
+    box-shadow: 0 0 10px yellow;
+    background-color: rgb(255, 255, 1);
+}
