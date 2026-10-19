@@ -1,0 +1,456 @@
+/* TRANSICION */
+.main-menu-container,
+.my-account-content {
+    transition: opacity 0.4s ease;
+}
+
+.fade-out {
+    opacity: 0;
+}
+
+/* CONTENEDOR DE MI CUENTA */
+.my-account-menu {
+    --ma-yellow: yellow;
+    --ma-card: rgb(31, 31, 31);
+    --ma-card-light: rgb(45, 45, 45);
+    --ma-surface: rgb(70, 70, 68);
+    --ma-muted: rgb(185, 185, 185);
+    --ma-danger: rgb(229, 83, 83);
+    --ma-success: rgb(76, 175, 80);
+
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    padding: calc(10vh + 10px) 20px 20px;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+    color: white;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.my-account-menu [hidden] {
+    display: none !important;
+}
+
+.my-account-content {
+    width: 100%;
+    max-width: 960px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* TARJETAS */
+.ma-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 30px;
+    background-color: var(--ma-card);
+    border-radius: 20px;
+}
+
+.ma-card-center {
+    align-items: center;
+    text-align: center;
+    padding: 50px 30px;
+}
+
+.ma-card h2 span {
+    color: var(--ma-yellow);
+}
+
+.ma-card h3 {
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.ma-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.my-account-menu .analize-button {
+    font-family: 'Montserrat', sans-serif;
+    padding: 12px 20px;
+}
+
+/* CARGANDO Y ERROR */
+.ma-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid var(--ma-surface);
+    border-top-color: var(--ma-yellow);
+    border-radius: 50%;
+    animation: ma-spin 0.9s linear infinite;
+}
+
+@keyframes ma-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.ma-error-icon {
+    font-size: 72px;
+    color: var(--ma-danger);
+}
+
+.ma-card-center p {
+    color: var(--ma-muted);
+    line-height: 1.4;
+}
+
+/* PERFIL DEL USUARIO */
+.ma-profile {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+}
+
+.ma-avatar {
+    flex-shrink: 0;
+    width: 100px;
+    height: 100px;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    border: 3px solid var(--ma-yellow);
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+}
+
+.ma-avatar img {
+    width: 100%;
+}
+
+.ma-profile-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ma-nickname {
+    color: var(--ma-yellow);
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.ma-email {
+    color: var(--ma-muted);
+    font-size: 0.95rem;
+}
+
+.ma-joined {
+    color: var(--ma-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.ma-profile-actions {
+    flex-shrink: 0;
+}
+
+/* CAMBIO DE CONTRASEÑA */
+.ma-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.ma-field label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ma-muted);
+}
+
+.ma-field input {
+    padding: 12px 16px;
+    background-color: var(--ma-card-light);
+    border: 2px solid var(--ma-surface);
+    border-radius: 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ma-field input:focus {
+    outline: none;
+    border-color: var(--ma-yellow);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+}
+
+.ma-field input::placeholder {
+    color: rgb(120, 120, 120);
+}
+
+.ma-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 8px;
+}
+
+/* PREFERENCIAS */
+.ma-preference-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    background-color: var(--ma-card-light);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.ma-preference-item:last-child {
+    margin-bottom: 0;
+}
+
+.ma-preference-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ma-preference-label {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.ma-preference-desc {
+    color: var(--ma-muted);
+    font-size: 0.85rem;
+}
+
+.ma-toggle {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.ma-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.ma-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--ma-surface);
+    transition: 0.3s;
+    border-radius: 26px;
+}
+
+.ma-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.ma-toggle input:checked + .ma-toggle-slider {
+    background-color: var(--ma-yellow);
+}
+
+.ma-toggle input:checked + .ma-toggle-slider:before {
+    transform: translateX(24px);
+}
+
+/* ESTADÍSTICAS RÁPIDAS */
+.ma-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.ma-stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    background-color: var(--ma-card-light);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.ma-stat-label {
+    color: var(--ma-muted);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.ma-stat-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.ma-stat-value.ma-stat-win {
+    color: var(--ma-success);
+}
+
+.ma-stat-value.ma-stat-level {
+    color: var(--ma-yellow);
+}
+
+/* ZONA DE PELIGRO */
+.ma-danger {
+    border: 2px solid var(--ma-danger);
+}
+
+.ma-danger h3 {
+    color: var(--ma-danger);
+}
+
+.ma-danger-text {
+    color: var(--ma-muted);
+    line-height: 1.5;
+    margin-bottom: 16px;
+}
+
+.ma-danger-button {
+    padding: 12px 24px;
+    background-color: var(--ma-danger);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: bold;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ma-danger-button:hover {
+    background-color: rgb(200, 60, 60);
+    box-shadow: 0 0 15px rgba(229, 83, 83, 0.4);
+}
+
+/* PANTALLAS CHICAS */
+@media (max-width: 800px) {
+    .ma-profile {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .ma-profile-info {
+        align-items: center;
+    }
+
+    .ma-profile-actions {
+        width: 100%;
+    }
+
+    .ma-profile-actions .analize-button {
+        width: 100%;
+    }
+
+    .ma-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .ma-card {
+        padding: 20px;
+    }
+
+    .ma-preference-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .ma-toggle {
+        align-self: flex-end;
+    }
+
+    .ma-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* HORIZONTAL - CELULARES EN LANDSCAPE */
+@media (max-height: 600px) and (orientation: landscape) {
+    .ma-card {
+        padding: 16px 20px;
+    }
+
+    .ma-profile {
+        flex-direction: row;
+        gap: 16px;
+    }
+
+    .ma-avatar {
+        width: 70px;
+        height: 70px;
+    }
+
+    .ma-nickname {
+        font-size: 1.2rem;
+    }
+
+    .ma-email {
+        font-size: 0.85rem;
+    }
+
+    .ma-joined {
+        font-size: 0.75rem;
+    }
+
+    .ma-field {
+        margin-bottom: 12px;
+    }
+
+    .ma-field input {
+        padding: 8px 12px;
+        font-size: 0.85rem;
+    }
+
+    .ma-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .ma-stat-item {
+        padding: 10px;
+    }
+
+    .ma-stat-value {
+        font-size: 1.4rem;
+    }
+
+    .ma-stat-label {
+        font-size: 0.7rem;
+    }
+}

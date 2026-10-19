@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="src/public/CSS/Components CSS/friends.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/match-register.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/user-stats.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/my-account.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/my-matches.css">
     <link rel="icon" type="image/png" href="src/public/Icons/proevolutionsoccerlogo.ico">
     <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,12 +29,21 @@
             </div>
         </div>
 
-        <nav>
-            <a href="" title="Mi cuenta"><i class="ph ph-user-circle"></i></a>
+        <nav class="desktop-nav">
+            <a href="" id="my-account" title="Mi cuenta"><i class="ph ph-user-circle"></i></a>
             <a href="" title="Musica"><i class="ph ph-music-note"></i></a>
             <a href="" title="Notificaciones"><i class="ph ph-bell"></i></a>
         </nav>
     </header>
+
+    <!-- BOTTOM BAR PARA MÓVILES -->
+    <nav class="bottom-nav">
+        <a href="" id="my-matches-mobile" title="Mis partidos"><i class="ph ph-soccer-ball"></i><span>Partidos</span></a>
+        <a href="" id="match-register-mobile" title="Registrar partido"><i class="ph ph-plus-circle"></i><span>Registrar</span></a>
+        <a href="" id="user-stats-mobile" title="Mis estadísticas"><i class="ph ph-chart-bar"></i><span>Estadísticas</span></a>
+        <a href="" id="user-friends-mobile" title="Mis amigos"><i class="ph ph-users"></i><span>Amigos</span></a>
+        <a href="" id="my-account-mobile" title="Mi cuenta"><i class="ph ph-user-circle"></i><span>Cuenta</span></a>
+    </nav>
 
     <main>
         <section class="main-hero">
@@ -343,6 +354,202 @@
                     </div>
                 </div>
             </div>
+
+            <!-- MI CUENTA -->
+            <div class="my-account-menu">
+                <div class="my-account-content">
+                    <button type="button" class="menu-buttons back-button" id="back-from-account"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+
+                    <!-- CARGANDO -->
+                    <section class="ma-card ma-card-center" id="ma-loading" role="status" aria-live="polite" hidden>
+                        <div class="ma-spinner"></div>
+                        <h2>Cargando tu <span>cuenta</span></h2>
+                    </section>
+
+                    <!-- ERROR -->
+                    <section class="ma-card ma-card-center" id="ma-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle ma-error-icon"></i>
+                        <h2>No se pudo <span>cargar</span></h2>
+                        <p id="ma-error-message">Hubo un problema al cargar tu cuenta. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="ma-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- PERFIL DEL USUARIO -->
+                    <div class="ma-dashboard" id="ma-dashboard" hidden>
+                        <!-- TARJETA DE PERFIL -->
+                        <section class="ma-card ma-profile">
+                            <div class="ma-avatar">
+                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="Avatar" id="ma-avatar-img">
+                            </div>
+
+                            <div class="ma-profile-info">
+                                <h2>Mi <span>Cuenta</span></h2>
+                                <p class="ma-nickname" data-field="nickname">ITsF4CU</p>
+                                <p class="ma-email" data-field="email">facundoleonel40@gmail.com</p>
+                                <p class="ma-joined" data-field="joined">Miembro desde: Octubre 2026</p>
+                            </div>
+
+                            <div class="ma-profile-actions">
+                                <button type="button" class="analize-button" id="ma-edit-profile">Editar perfil</button>
+                            </div>
+                        </section>
+
+                        <!-- CAMBIO DE CONTRASEÑA -->
+                        <section class="ma-card ma-password">
+                            <h3><i class="ph ph-lock-key"></i>&nbsp;Seguridad</h3>
+                            <form id="ma-password-form" novalidate>
+                                <div class="ma-field">
+                                    <label for="ma-current-password">Contraseña actual</label>
+                                    <input type="password" id="ma-current-password" name="current_password" placeholder="Ingresa tu contraseña actual">
+                                </div>
+                                <div class="ma-field">
+                                    <label for="ma-new-password">Nueva contraseña</label>
+                                    <input type="password" id="ma-new-password" name="new_password" placeholder="Ingresa tu nueva contraseña">
+                                </div>
+                                <div class="ma-field">
+                                    <label for="ma-confirm-password">Confirmar contraseña</label>
+                                    <input type="password" id="ma-confirm-password" name="confirm_password" placeholder="Confirma tu nueva contraseña">
+                                </div>
+                                <div class="ma-actions">
+                                    <button type="submit" class="analize-button">Actualizar contraseña</button>
+                                </div>
+                            </form>
+                        </section>
+
+                        <!-- PREFERENCIAS -->
+                        <section class="ma-card ma-preferences">
+                            <h3><i class="ph ph-gear"></i>&nbsp;Preferencias</h3>
+                            <div class="ma-preference-item">
+                                <div class="ma-preference-info">
+                                    <span class="ma-preference-label">Notificaciones por email</span>
+                                    <span class="ma-preference-desc">Recibir notificaciones sobre partidos y solicitudes de amistad</span>
+                                </div>
+                                <label class="ma-toggle">
+                                    <input type="checkbox" id="ma-email-notifications" checked>
+                                    <span class="ma-toggle-slider"></span>
+                                </label>
+                            </div>
+                            <div class="ma-preference-item">
+                                <div class="ma-preference-info">
+                                    <span class="ma-preference-label">Perfil público</span>
+                                    <span class="ma-preference-desc">Permitir que otros usuarios vean tu perfil y estadísticas</span>
+                                </div>
+                                <label class="ma-toggle">
+                                    <input type="checkbox" id="ma-public-profile" checked>
+                                    <span class="ma-toggle-slider"></span>
+                                </label>
+                            </div>
+                        </section>
+
+                        <!-- ESTADÍSTICAS RÁPIDAS -->
+                        <section class="ma-card ma-quick-stats">
+                            <h3><i class="ph ph-chart-bar"></i>&nbsp;Resumen</h3>
+                            <div class="ma-stats-grid">
+                                <div class="ma-stat-item">
+                                    <span class="ma-stat-label">Partidos jugados</span>
+                                    <strong class="ma-stat-value" data-field="total_matches">0</strong>
+                                </div>
+                                <div class="ma-stat-item">
+                                    <span class="ma-stat-label">Amigos</span>
+                                    <strong class="ma-stat-value" data-field="total_friends">0</strong>
+                                </div>
+                                <div class="ma-stat-item">
+                                    <span class="ma-stat-label">Victorias</span>
+                                    <strong class="ma-stat-value ma-stat-win" data-field="total_wins">0</strong>
+                                </div>
+                                <div class="ma-stat-item">
+                                    <span class="ma-stat-label">Nivel</span>
+                                    <strong class="ma-stat-value ma-stat-level" data-field="level">1</strong>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- ELIMINAR CUENTA -->
+                        <section class="ma-card ma-danger">
+                            <h3><i class="ph ph-warning"></i>&nbsp;Zona de peligro</h3>
+                            <p class="ma-danger-text">Eliminar tu cuenta borrará permanentemente todos tus datos, partidos y estadísticas. Esta acción no se puede deshacer.</p>
+                            <button type="button" class="ma-danger-button" id="ma-delete-account">Eliminar mi cuenta</button>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MIS PARTIDOS -->
+            <div class="my-matches-menu">
+                <div class="my-matches-content">
+                    <button type="button" class="menu-buttons back-button" id="back-from-matches"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+
+                    <!-- CARGANDO -->
+                    <section class="mm-card mm-card-center" id="mm-loading" role="status" aria-live="polite" hidden>
+                        <div class="mm-spinner"></div>
+                        <h2>Cargando tus <span>partidos</span></h2>
+                    </section>
+
+                    <!-- ERROR -->
+                    <section class="mm-card mm-card-center" id="mm-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle mm-error-icon"></i>
+                        <h2>No se pudieron <span>cargar</span></h2>
+                        <p id="mm-error-message">Hubo un problema al cargar tus partidos. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="mm-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- SIN PARTIDOS -->
+                    <section class="mm-card mm-card-center" id="mm-empty" hidden>
+                        <i class="ph ph-soccer-ball mm-empty-icon"></i>
+                        <h2>Todavía no hay <span>partidos</span></h2>
+                        <p>No has registrado ningún partido todavía. ¡Registra tu primer partido y empieza a construir tu historial!</p>
+                        <button type="button" class="analize-button" id="mm-register-first">Registrar partido</button>
+                    </section>
+
+                    <!-- LISTA DE PARTIDOS -->
+                    <div class="mm-dashboard" id="mm-dashboard" hidden>
+                        <!-- FILTROS Y BÚSQUEDA -->
+                        <section class="mm-card mm-filters">
+                            <div class="mm-search">
+                                <i class="ph ph-magnifying-glass"></i>
+                                <input type="text" id="mm-search-input" placeholder="Buscar partido por rival o equipo...">
+                            </div>
+                            <div class="mm-filter-buttons">
+                                <button type="button" class="mm-filter-btn active" data-filter="all">Todos</button>
+                                <button type="button" class="mm-filter-btn" data-filter="wins">Victorias</button>
+                                <button type="button" class="mm-filter-btn" data-filter="draws">Empates</button>
+                                <button type="button" class="mm-filter-btn" data-filter="losses">Derrotas</button>
+                            </div>
+                        </section>
+
+                        <!-- RESUMEN RÁPIDO -->
+                        <section class="mm-card mm-summary">
+                            <h3>Resumen</h3>
+                            <div class="mm-summary-stats">
+                                <div class="mm-summary-item">
+                                    <span class="mm-summary-label">Total</span>
+                                    <strong class="mm-summary-value" data-field="total">0</strong>
+                                </div>
+                                <div class="mm-summary-item mm-summary-win">
+                                    <span class="mm-summary-label">Victorias</span>
+                                    <strong class="mm-summary-value" data-field="wins">0</strong>
+                                </div>
+                                <div class="mm-summary-item mm-summary-draw">
+                                    <span class="mm-summary-label">Empates</span>
+                                    <strong class="mm-summary-value" data-field="draws">0</strong>
+                                </div>
+                                <div class="mm-summary-item mm-summary-loss">
+                                    <span class="mm-summary-label">Derrotas</span>
+                                    <strong class="mm-summary-value" data-field="losses">0</strong>
+                                </div>
+                            </div>
+                        </section>
+
+                        <!-- LISTA DE PARTIDOS -->
+                        <section class="mm-card mm-matches-list">
+                            <h3>Historial de partidos</h3>
+                            <div class="mm-matches" id="mm-matches-container">
+                                <!-- Los partidos se cargan dinámicamente aquí -->
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -398,5 +605,7 @@
     <script src="src/public/JS/user-stats-calc.js"></script>
     <script src="src/public/JS/user-stats.js"></script>
     <script src="src/public/JS/stats.js"></script>
+    <script src="src/public/JS/my-account.js"></script>
+    <script src="src/public/JS/my-matches.js"></script>
 </body>
 </html>

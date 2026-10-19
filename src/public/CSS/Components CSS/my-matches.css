@@ -1,0 +1,436 @@
+/* TRANSICION */
+.main-menu-container,
+.my-matches-content {
+    transition: opacity 0.4s ease;
+}
+
+.fade-out {
+    opacity: 0;
+}
+
+/* CONTENEDOR DE MIS PARTIDOS */
+.my-matches-menu {
+    --mm-yellow: yellow;
+    --mm-card: rgb(31, 31, 31);
+    --mm-card-light: rgb(45, 45, 45);
+    --mm-surface: rgb(70, 70, 68);
+    --mm-muted: rgb(185, 185, 185);
+    --mm-win: rgb(76, 175, 80);
+    --mm-draw: rgb(150, 150, 148);
+    --mm-loss: rgb(229, 83, 83);
+
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    padding: calc(10vh + 10px) 20px 20px;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+    color: white;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.my-matches-menu [hidden] {
+    display: none !important;
+}
+
+.my-matches-content {
+    width: 100%;
+    max-width: 960px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* TARJETAS */
+.mm-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 30px;
+    background-color: var(--mm-card);
+    border-radius: 20px;
+}
+
+.mm-card-center {
+    align-items: center;
+    text-align: center;
+    padding: 50px 30px;
+}
+
+.mm-card h2 span {
+    color: var(--mm-yellow);
+}
+
+.mm-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.mm-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.my-matches-menu .analize-button {
+    font-family: 'Montserrat', sans-serif;
+    padding: 12px 20px;
+}
+
+/* CARGANDO Y ERROR */
+.mm-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid var(--mm-surface);
+    border-top-color: var(--mm-yellow);
+    border-radius: 50%;
+    animation: mm-spin 0.9s linear infinite;
+}
+
+@keyframes mm-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.mm-error-icon {
+    font-size: 72px;
+    color: var(--mm-loss);
+}
+
+.mm-empty-icon {
+    font-size: 72px;
+    color: var(--mm-yellow);
+}
+
+.mm-card-center p {
+    color: var(--mm-muted);
+    line-height: 1.4;
+    margin-bottom: 20px;
+}
+
+/* FILTROS Y BÚSQUEDA */
+.mm-filters {
+    gap: 16px;
+}
+
+.mm-search {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background-color: var(--mm-card-light);
+    border-radius: 12px;
+    border: 2px solid var(--mm-surface);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mm-search:focus-within {
+    border-color: var(--mm-yellow);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+}
+
+.mm-search i {
+    font-size: 20px;
+    color: var(--mm-muted);
+}
+
+.mm-search input {
+    flex: 1;
+    background: none;
+    border: none;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.95rem;
+}
+
+.mm-search input::placeholder {
+    color: rgb(120, 120, 120);
+}
+
+.mm-search input:focus {
+    outline: none;
+}
+
+.mm-filter-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.mm-filter-btn {
+    padding: 8px 16px;
+    background-color: var(--mm-card-light);
+    border: 2px solid var(--mm-surface);
+    border-radius: 20px;
+    color: var(--mm-muted);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.mm-filter-btn:hover {
+    border-color: var(--mm-yellow);
+    color: white;
+}
+
+.mm-filter-btn.active {
+    background-color: var(--mm-yellow);
+    border-color: var(--mm-yellow);
+    color: black;
+}
+
+/* RESUMEN */
+.mm-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.mm-summary-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 16px;
+    background-color: var(--mm-card-light);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.mm-summary-label {
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.mm-summary-value {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: white;
+}
+
+.mm-summary-item.mm-summary-win .mm-summary-value {
+    color: var(--mm-win);
+}
+
+.mm-summary-item.mm-summary-draw .mm-summary-value {
+    color: var(--mm-draw);
+}
+
+.mm-summary-item.mm-summary-loss .mm-summary-value {
+    color: var(--mm-loss);
+}
+
+/* LISTA DE PARTIDOS */
+.mm-matches {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.mm-match {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: var(--mm-card-light);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.mm-match:hover {
+    background-color: rgb(55, 55, 55);
+    transform: translateX(4px);
+}
+
+.mm-match-result {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.mm-match-result.mm-win {
+    background-color: var(--mm-win);
+}
+
+.mm-match-result.mm-draw {
+    background-color: var(--mm-draw);
+}
+
+.mm-match-result.mm-loss {
+    background-color: var(--mm-loss);
+}
+
+.mm-match-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.mm-match-teams {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.mm-match-teams strong {
+    margin: 0 4px;
+    color: var(--mm-yellow);
+}
+
+.mm-match-details {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--mm-muted);
+    font-size: 0.85rem;
+}
+
+.mm-match-details span {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.mm-match-date {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    color: var(--mm-muted);
+    font-size: 0.8rem;
+    text-align: right;
+}
+
+.mm-match-date strong {
+    font-size: 0.9rem;
+    color: white;
+}
+
+/* PANTALLAS CHICAS */
+@media (max-width: 800px) {
+    .mm-summary-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .mm-filter-buttons {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 600px) {
+    .mm-card {
+        padding: 20px;
+    }
+
+    .mm-match {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .mm-match-result {
+        align-self: flex-start;
+    }
+
+    .mm-match-details {
+        flex-wrap: wrap;
+    }
+
+    .mm-match-date {
+        align-self: flex-end;
+    }
+}
+
+/* HORIZONTAL - CELULARES EN LANDSCAPE */
+@media (max-height: 600px) and (orientation: landscape) {
+    .mm-card {
+        padding: 12px 16px;
+    }
+
+    .mm-filters {
+        gap: 8px;
+    }
+
+    .mm-search {
+        padding: 8px 12px;
+    }
+
+    .mm-search input {
+        font-size: 0.85rem;
+    }
+
+    .mm-filter-btn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+    }
+
+    .mm-summary-stats {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+    }
+
+    .mm-summary-item {
+        padding: 8px;
+    }
+
+    .mm-summary-value {
+        font-size: 1.4rem;
+    }
+
+    .mm-summary-label {
+        font-size: 0.7rem;
+    }
+
+    .mm-match {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .mm-match-result {
+        width: 32px;
+        height: 32px;
+        font-size: 0.8rem;
+    }
+
+    .mm-match-teams {
+        font-size: 0.9rem;
+    }
+
+    .mm-match-details {
+        font-size: 0.75rem;
+        gap: 8px;
+    }
+
+    .mm-match-date {
+        font-size: 0.7rem;
+    }
+
+    .mm-match-date strong {
+        font-size: 0.8rem;
+    }
+}
