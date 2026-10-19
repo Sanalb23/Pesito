@@ -6,11 +6,16 @@ const {
     requestDelete,
     confirmMatch,
     confirmEdit,
-    confirmDelete
+    confirmDelete,
+    detectMatchStats
 } = require("../controllers/match.controller");
 const { verifyToken } = require("../middlewares/auth");
+const { handleUploadPhoto } = require("../middlewares/upload");
 
 const router = express.Router();
+
+// Detección de estadísticas mediante foto
+router.post("/detect-stats", verifyToken, handleUploadPhoto, detectMatchStats);
 
 // Endpoints de solicitudes
 router.post("/", verifyToken, requestCreate);
@@ -25,4 +30,3 @@ router.delete("/:matchId", verifyToken, confirmDelete);
 router.get("/:matchId", verifyToken, getMatchData);
 
 module.exports = router;
-

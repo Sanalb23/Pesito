@@ -1,5 +1,7 @@
 const matchModel = require('../models/match.model');
 const notificationModel = require('../models/notification.model');
+const teamGameModel = require('../models/team.game.model');
+const geminiService = require('./gemini.service');
 
 const requestCreate = async (matchData, senderId = null) => {
     const request = await matchModel.create(matchData);
@@ -94,6 +96,51 @@ const confirmDelete = async (matchId, senderId, receiverId) => {
     return request;
 };
 
+/**
+ * Resuelve por similitud de nombres los IDs de los equipos correspondientes a un juego
+ * y formatea los datos al esquema requerido para publicar un partido (POST /matches).
+ */
+const orchestrateMatchPayload = async (detectedData, gameId, options = {}) => {
+    const [homeMatch, awayMatch] = await Promise.all([
+        detectedData.homeTeam ? teamGameModel.findTeamByName(gameId, detectedData.homeTeam) : null,
+        detectedData.awayTeam ? teamGameModel.findTeamByName(gameId, detectedData.awayTeam) : null
+    ]);
+
+    const homeTeamGame = homeMatch;
+    const awayTeamGame = awayMatch;
+
+    return {
+        homeUserId: options.homeUserId !== undefined ? options.homeUserId : null,
+        awayUserId: options.awayUserId !== undefined ? options.awayUserId : null,
+        homeTeamId: homeTeamGame ? homeTeamGame.id : null,
+        awayTeamId: awayTeamGame ? awayTeamGame.id : null,
+        homeGoals: detectedData.homeGoals !== null && detectedData.homeGoals !== undefined ? detectedData.homeGoals : 0,
+        awayGoals: detectedData.awayGoals !== null && detectedData.awayGoals !== undefined ? detectedData.awayGoals : 0,
+        stats: detectedData.stats || {},
+        detectedTeams: {
+            home: {
+                detected: detectedData.homeTeam || null,
+                matchedName: homeTeamGame ? homeTeamGame.name : null,
+                teamGameId: homeTeamGame ? homeTeamGame.id : null
+            },
+            away: {
+                detected: detectedData.awayTeam || null,
+                matchedName: awayTeamGame ? awayTeamGame.name : null,
+                teamGameId: awayTeamGame ? awayTeamGame.id : null
+            }
+        },
+        confidenceNotes: detectedData.confidenceNotes || null
+    };
+};
+
+/**
+ * Procesa la imagen mediante Gemini y formatea el payload del partido resolviendo los IDs de los equipos.
+ */
+const orchestrateMatchDetection = async ({ fileBuffer, mimeType, gameId, homeUserId, awayUserId }) => {
+    const detectedData = await geminiService.detectMatchStatsFromImage(fileBuffer, mimeType);
+    return await orchestrateMatchPayload(detectedData, gameId, { homeUserId, awayUserId });
+};
+
 module.exports = {
     requestCreate,
     requestEdit,
@@ -101,4 +148,6 @@ module.exports = {
     confirmCreate,
     confirmEdit,
     confirmDelete,
+    orchestrateMatchPayload,
+    orchestrateMatchDetection
 };

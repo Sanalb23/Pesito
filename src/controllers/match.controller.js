@@ -251,6 +251,58 @@ const getMyMatches = async (req, res) => {
     }
 };
 
+const detectMatchStats = async (req, res) => {
+    try {
+        const gameId = parseId(req.body.gameId || req.query.gameId);
+
+        if (!gameId) {
+            return res.status(400).json({
+                error: "MISSING_OR_INVALID_GAME_ID",
+                message: "Debes especificar un ID de juego válido (gameId) antes de realizar la detección"
+            });
+        }
+
+        const file = req.file || (req.files && (req.files.photo?.[0] || req.files.image?.[0]));
+
+        if (!file) {
+            return res.status(400).json({
+                error: "NO_FILE_UPLOADED",
+                message: "Debes subir una imagen de las estadísticas del partido"
+            });
+        }
+
+        const homeUserId = parseId(req.body.homeUserId) || req.user?.id || null;
+        const awayUserId = parseId(req.body.awayUserId) || null;
+
+        const data = await matchService.orchestrateMatchDetection({
+            fileBuffer: file.buffer,
+            mimeType: file.mimetype,
+            gameId,
+            homeUserId,
+            awayUserId
+        });
+
+        return res.status(200).json({
+            message: "Estadísticas del partido detectadas exitosamente",
+            data
+        });
+    } catch (error) {
+        console.error("Error en detectMatchStats controller:", error);
+
+        if (error.code === "INVALID_FILE_TYPE") {
+            return res.status(400).json({
+                error: "INVALID_FILE_TYPE",
+                message: error.message
+            });
+        }
+
+        return res.status(500).json({
+            error: "STATS_DETECTION_ERROR",
+            message: "Error al procesar la imagen y detectar las estadísticas del partido"
+        });
+    }
+};
+
 module.exports = {
     requestCreate,
     getMyMatches,
@@ -261,4 +313,5 @@ module.exports = {
     confirmMatch,
     confirmEdit,
     confirmDelete,
+    detectMatchStats
 };

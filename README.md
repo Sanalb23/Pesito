@@ -7,7 +7,19 @@ Esta es la documentación oficial y completa de la API del proyecto **Pesito**. 
 ## 📌 Configuración General
 
 - **URL Base:** `https://pesito-ejyz.onrender.com`
-- **Formato de datos:** `application/json` para peticiones con cuerpo (POST, PUT, PATCH, etc.) y respuestas.
+- **Formato de datos:** `application/json` para peticiones estándar y `multipart/form-data` para subida de fotos (`/matches/detect-stats`).
+
+### ⚙️ Variables de Entorno
+
+| Variable | Tipo | Requerida | Descripción |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | `string` | Sí | Cadena de conexión PostgreSQL (con soporte SSL `require`). |
+| `JWT_KEY` | `string` | Sí | Clave secreta para firmar tokens de acceso `access_token` (1 hora). |
+| `JWT_REFRESH_KEY` | `string` | Sí | Clave secreta para firmar tokens de renovación `refresh_token` (14 días). |
+| `GEMINI_API_KEY` | `string` | Sí | API Key de Google Gemini para procesamiento visual con IA. |
+| `GEMINI_MODEL` | `string` | No | Modelo de Gemini utilizado (por defecto `gemini-3.5-flash-lite`, recomendado para visión `gemini-3.1-flash-lite`). |
+| `BASE_URL` | `string` | No | URL base del servidor (ej. `http://localhost:3000`). |
+| `NODE_ENV` | `string` | No | Entorno de ejecución (`development`, `production`, `debug`). |
 
 ---
 
@@ -69,6 +81,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Game** | `GET` | `/games` | No | Obtiene la lista de todos los juegos registrados. |
 | **Game** | `GET` | `/games/:gameId/leagues` | No | Obtiene las ligas asociadas a un juego. |
 | **Game** | `GET` | `/games/:gameId/leagues/:leagueId/teams` | No | Obtiene los equipos de una liga y juego específicos. |
+| **Match** | `POST` | `/matches/detect-stats` | **Sí** | Procesa foto de pantalla de estadísticas con IA (Gemini) y mapea equipos a `teams_games`. |
 | **Match** | `POST` | `/matches` | **Sí** | Solicita la creación de un partido en estado inactivo y notifica al rival. |
 | **Match** | `PATCH` | `/matches/:matchId/confirm` | **Sí** | Confirma y activa un partido registrado. |
 | **Match** | `POST` | `/matches/:matchId/request-edit` | **Sí** | Solicita la edición de datos/estadísticas de un partido. |
@@ -856,6 +869,89 @@ Acepta la estructura de datos del partido y objeto `stats` a actualizar.
 - **`500 Internal Server Error`**:
   ```json
   { "error": "GET_MATCH_ERROR", "message": "Error al obtener el partido" }
+  ```
+
+---
+
+### 4.8 Detección Automática de Estadísticas mediante Foto (IA Gemini)
+- **Ruta:** `POST /matches/detect-stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Tipo de Contenido:** `multipart/form-data`
+- **Descripción:** Analiza una fotografía o captura de la pantalla final de estadísticas de un partido de PES mediante la API multimodal de Google Gemini. Aplica convenciones visuales para interpretar:
+  - **Distribución espacial:** El equipo del lado **izquierdo** (o superior) es considerado Local (`homeTeam`), y el equipo del lado **derecho** (o inferior) es considerado Visitante (`awayTeam`).
+  - **Tabla de estadísticas en dos columnas:** La columna de números izquierda corresponde al local y la columna derecha al visitante.
+  - **Resolución fonética/textual de equipos:** Mapea automáticamente los nombres detectados a los IDs reales de `teams_games` mediante similitud trigram (`findTeamByName`).
+  - **Notas de confianza (`confidenceNotes`):** Solo se incluyen observaciones si existen campos ilegibles, borrosos, recortados o con ambigüedad. Si todo se identificó con total claridad, el valor devuelto es estrictamente `null`.
+
+#### Parámetros del Formulario (`multipart/form-data`):
+| Campo | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `gameId` | `integer` | Sí | ID del videojuego para buscar y asignar automáticamente `homeTeamId` y `awayTeamId` mediante similitud trigram. Debe proporcionarse estrictamente antes de la detección. Puede enviarse en el cuerpo o como query param (`?gameId=X`). |
+| `photo` / `image` / `file` | `File (Binary)` | Sí | Imagen de la pantalla de estadísticas (JPEG, PNG, WEBP, máx 10 MB). |
+| `homeUserId` | `integer` | No | ID del usuario local (por defecto se toma el ID del usuario autenticado). |
+| `awayUserId` | `integer` | No | ID del usuario rival si se conoce. |
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas detectadas y esquema listo para enviar a `POST /matches`.
+  ```json
+  {
+    "message": "Estadísticas del partido detectadas exitosamente",
+    "data": {
+      "homeUserId": 1,
+      "awayUserId": 2,
+      "homeTeamId": 45,
+      "awayTeamId": 46,
+      "homeGoals": 3,
+      "awayGoals": 2,
+      "stats": {
+        "homePossession": 55,
+        "awayPossession": 45,
+        "homeShots": 12,
+        "awayShots": 8,
+        "homeShotsOnTarget": 6,
+        "awayShotsOnTarget": 3,
+        "homeCornerKicks": 6,
+        "awayCornerKicks": 2,
+        "homeFouls": 8,
+        "awayFouls": 10
+      },
+      "detectedTeams": {
+        "home": {
+          "detected": "Arsenal",
+          "matchedName": "Arsenal FC",
+          "teamGameId": 45
+        },
+        "away": {
+          "detected": "Chelsea",
+          "matchedName": "Chelsea FC",
+          "teamGameId": 46
+        }
+      },
+      "confidenceNotes": null
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si no se proporciona un `gameId` válido.
+  ```json
+  {
+    "error": "MISSING_OR_INVALID_GAME_ID",
+    "message": "Debes especificar un ID de juego válido (gameId) antes de realizar la detección"
+  }
+  ```
+- **`400 Bad Request`**: Si no se adjuntó archivo o el archivo no es una imagen válida.
+  ```json
+  {
+    "error": "NO_FILE_UPLOADED",
+    "message": "Debes subir una imagen de las estadísticas del partido"
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**: Error durante el procesamiento o detección de la imagen.
+  ```json
+  {
+    "error": "STATS_DETECTION_ERROR",
+    "message": "Error al procesar la imagen y detectar las estadísticas del partido"
+  }
   ```
 
 ---
