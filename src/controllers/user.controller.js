@@ -121,10 +121,29 @@ const getUserById = async (req, res) => {
     }
 };
 
+const deleteAccount = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+
+        if (!userId) {
+            return res.status(400).json({ error: "INVALID_USER_ID", message: "Usuario no valido" });
+        }
+
+        await deleteUser(userId);
+
+        res.status(200).json({
+            message: "Cuenta eliminada",
+        });
+    } catch (error) {
+        res.status(500).json({ error: "DELETE_ACCOUNT_ERROR", message: "Error al eliminar la cuenta" });
+    }
+};
+
 module.exports = {
     searchByNickname,
     getMyStats,
     getUserStats,
     getCurrentUser,
-    getUserById
+    getUserById,
+    deleteAccount
 };
