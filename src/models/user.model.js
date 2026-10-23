@@ -19,7 +19,7 @@ const findByNickname = async (nickname) => {
 };
 
 const findById = async (id) => {
-    const query = 'SELECT id, nickname FROM users WHERE id = $1';
+    const query = 'SELECT id, nickname, email, created_at FROM users WHERE id = $1';
     const result = await pool.query(query, [id]);
     return result.rows[0];
 };

@@ -74,6 +74,8 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/logout` | No | Cierra la sesión limpiando las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
+| **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
+| **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
 | **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial de partidos del usuario autenticado. |
 | **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
 | **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial de partidos de un usuario específico. |
@@ -277,7 +279,80 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.2 Obtener Partidos del Usuario Autenticado
+### 2.2 Obtener Perfil del Usuario Autenticado
+- **Ruta:** `GET /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil del usuario actualmente autenticado en sesión (`id`, `nickname`, `email` y `created_at`).
+
+#### Respuestas:
+- **`200 OK`**: Datos del usuario autenticado obtenidos correctamente.
+  ```json
+  {
+    "message": "Usuario obtenido",
+    "data": {
+      "id": 1,
+      "nickname": "jugador1",
+      "email": "jugador1@ejemplo.com",
+      "created_at": "2026-09-15T18:00:00.000Z"
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado en la base de datos.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_ERROR", "message": "Error al obtener los datos del usuario" }
+  ```
+
+---
+
+### 2.3 Obtener Perfil de un Usuario por ID
+- **Ruta:** `GET /users/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos públicos del perfil de un usuario específico identificado por su `userId` (excluyendo datos privados como email y fecha de registro).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID numérico positivo del usuario. |
+
+**Ejemplo de Petición:** `GET /users/5`
+
+#### Respuestas:
+- **`200 OK`**: Datos públicos del usuario obtenidos correctamente.
+  ```json
+  {
+    "message": "Usuario obtenido",
+    "data": {
+      "id": 5,
+      "nickname": "jugadorPro"
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_ERROR", "message": "Error al obtener los datos del usuario" }
+  ```
+
+---
+
+### 2.4 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene todos los partidos jugados por el usuario actual (ya sea como local o como visitante), ordenados cronológicamente de forma descendente.
@@ -311,7 +386,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.3 Obtener Partidos de un Usuario por ID
+### 2.5 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta.
@@ -340,7 +415,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.4 Obtener Estadísticas del Usuario Autenticado
+### 2.6 Obtener Estadísticas del Usuario Autenticado
 - **Ruta:** `GET /users/me/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
@@ -406,7 +481,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.5 Obtener Estadísticas de un Usuario por ID
+### 2.7 Obtener Estadísticas de un Usuario por ID
 - **Ruta:** `GET /users/:userId/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
