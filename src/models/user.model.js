@@ -127,10 +127,16 @@ const getStatsByUserId = async (userId) => {
     return result.rows[0];
 };
 
+const deleteUser = async (id) => {
+    const query = 'DELETE FROM users WHERE id = $1';
+    await pool.query(query, [id]);
+};
+
 module.exports = {
     findByEmail,
     create,
     findByNickname,
     findById,
-    getStatsByUserId
+    getStatsByUserId,
+    deleteUser
 };

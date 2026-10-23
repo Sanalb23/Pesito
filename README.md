@@ -75,6 +75,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
 | **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
+| **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
 | **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial de partidos del usuario autenticado. |
 | **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
@@ -352,7 +353,29 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.4 Obtener Partidos del Usuario Autenticado
+### 2.4 Eliminar Cuenta del Usuario Autenticado
+- **Ruta:** `DELETE /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Elimina de forma permanente la cuenta del usuario autenticado en la base de datos.
+
+#### Respuestas:
+- **`200 OK`**: Cuenta eliminada exitosamente.
+  ```json
+  { "message": "Cuenta eliminada" }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_ACCOUNT_ERROR", "message": "Error al eliminar la cuenta" }
+  ```
+
+---
+
+### 2.5 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene todos los partidos jugados por el usuario actual (ya sea como local o como visitante), ordenados cronológicamente de forma descendente.
@@ -386,7 +409,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.5 Obtener Partidos de un Usuario por ID
+### 2.6 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta.
@@ -415,7 +438,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.6 Obtener Estadísticas del Usuario Autenticado
+### 2.7 Obtener Estadísticas del Usuario Autenticado
 - **Ruta:** `GET /users/me/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
@@ -481,7 +504,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.7 Obtener Estadísticas de un Usuario por ID
+### 2.8 Obtener Estadísticas de un Usuario por ID
 - **Ruta:** `GET /users/:userId/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
