@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,8 +16,10 @@
     <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
+        rel="stylesheet">
 </head>
+
 <body>
     <header>
         <div class="logo-container">
@@ -38,9 +41,12 @@
 
     <!-- BOTTOM BAR PARA MÓVILES -->
     <nav class="bottom-nav">
-        <a href="" id="my-matches-mobile" title="Mis partidos"><i class="ph ph-soccer-ball"></i><span>Partidos</span></a>
-        <a href="" id="match-register-mobile" title="Registrar partido"><i class="ph ph-plus-circle"></i><span>Registrar</span></a>
-        <a href="" id="user-stats-mobile" title="Mis estadísticas"><i class="ph ph-chart-bar"></i><span>Estadísticas</span></a>
+        <a href="" id="my-matches-mobile" title="Mis partidos"><i
+                class="ph ph-soccer-ball"></i><span>Partidos</span></a>
+        <a href="" id="match-register-mobile" title="Registrar partido"><i
+                class="ph ph-plus-circle"></i><span>Registrar</span></a>
+        <a href="" id="user-stats-mobile" title="Mis estadísticas"><i
+                class="ph ph-chart-bar"></i><span>Estadísticas</span></a>
         <a href="" id="user-friends-mobile" title="Mis amigos"><i class="ph ph-users"></i><span>Amigos</span></a>
         <a href="" id="my-account-mobile" title="Mi cuenta"><i class="ph ph-user-circle"></i><span>Cuenta</span></a>
     </nav>
@@ -64,20 +70,31 @@
             <!-- REGISTRAR PARTIDO -->
             <div class="match-register-menu">
                 <div class="match-register-content">
-                    <button type="button" class="menu-buttons back-button" id="back-to-menu"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+                    <button type="button" class="menu-buttons back-button" id="back-to-menu"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
                     <!-- PASO 1: INSTRUCTIVO Y SUBIDA DE LA FOTO -->
                     <section class="mr-card" id="step-upload">
                         <h2>Registrar <span>partido</span></h2>
 
                         <ol class="mr-instructions">
-                            <li><p>Al terminar el partido, deja abierta la pantalla de <strong>Resultado</strong>, la que muestra el marcador y las estadísticas.</p></li>
-                            <li><p>Toma una foto donde se vea <strong>todo el marcador y todas las estadísticas</strong>, derecha y sin reflejos.</p></li>
-                            <li><p>Sube la foto aquí y presiona <strong>Analizar resultados</strong>. Podrás revisar y corregir los datos antes de guardar.</p></li>
+                            <li>
+                                <p>Al terminar el partido, deja abierta la pantalla de <strong>Resultado</strong>, la
+                                    que muestra el marcador y las estadísticas.</p>
+                            </li>
+                            <li>
+                                <p>Toma una foto donde se vea <strong>todo el marcador y todas las
+                                        estadísticas</strong>, derecha y sin reflejos.</p>
+                            </li>
+                            <li>
+                                <p>Sube la foto aquí y presiona <strong>Analizar resultados</strong>. Podrás revisar y
+                                    corregir los datos antes de guardar.</p>
+                            </li>
                         </ol>
 
                         <input type="file" id="result-photo-input" accept="image/*" hidden>
-                        <div class="mr-dropzone" id="dropzone" role="button" tabindex="0" aria-label="Seleccionar la foto de los resultados">
+                        <div class="mr-dropzone" id="dropzone" role="button" tabindex="0"
+                            aria-label="Seleccionar la foto de los resultados">
                             <div class="mr-dropzone-empty" id="dropzone-empty">
                                 <i class="ph ph-upload-simple"></i>
                                 <p>Arrastra la foto aquí o haz clic para elegirla</p>
@@ -89,7 +106,8 @@
                         <p class="mr-error" id="upload-error" role="alert" hidden></p>
 
                         <div class="mr-actions">
-                            <button type="button" class="analize-button" id="analyze-button" disabled>Analizar resultados</button>
+                            <button type="button" class="analize-button" id="analyze-button" disabled>Analizar
+                                resultados</button>
                         </div>
                     </section>
 
@@ -103,7 +121,8 @@
                     <!-- PASO 3: REVISION DE LOS RESULTADOS -->
                     <section class="mr-card" id="step-review" hidden>
                         <h2>Revisa los <span>resultados</span></h2>
-                        <p class="mr-hint">Estos son los datos que se leyeron de tu foto. Corrige lo que haga falta antes de confirmar.</p>
+                        <p class="mr-hint">Estos son los datos que se leyeron de tu foto. Corrige lo que haga falta
+                            antes de confirmar.</p>
 
                         <p class="mr-notice" id="review-notice" hidden></p>
 
@@ -137,18 +156,22 @@
                             <div class="mr-scoreboard">
                                 <div class="mr-side">
                                     <span class="mr-side-label">Local</span>
-                                    <select name="home_team_game_id" id="home-team-select" aria-label="Equipo local"></select>
+                                    <select name="home_team_game_id" id="home-team-select"
+                                        aria-label="Equipo local"></select>
                                 </div>
 
                                 <div class="mr-score">
-                                    <input type="number" name="home_goals" min="0" step="1" inputmode="numeric" aria-label="Goles del local">
+                                    <input type="number" name="home_goals" min="0" step="1" inputmode="numeric"
+                                        aria-label="Goles del local">
                                     <span>-</span>
-                                    <input type="number" name="away_goals" min="0" step="1" inputmode="numeric" aria-label="Goles del visitante">
+                                    <input type="number" name="away_goals" min="0" step="1" inputmode="numeric"
+                                        aria-label="Goles del visitante">
                                 </div>
 
                                 <div class="mr-side">
                                     <span class="mr-side-label">Visitante</span>
-                                    <select name="away_team_game_id" id="away-team-select" aria-label="Equipo visitante"></select>
+                                    <select name="away_team_game_id" id="away-team-select"
+                                        aria-label="Equipo visitante"></select>
                                 </div>
                             </div>
 
@@ -167,8 +190,10 @@
                             </div>
 
                             <div class="mr-actions mr-actions-split">
-                                <button type="button" class="menu-buttons back-button" id="back-to-upload"><i class="ph ph-arrow-left"></i>&nbsp;Cambiar foto</button>
-                                <button type="submit" class="analize-button" id="confirm-match">Confirmar partido</button>
+                                <button type="button" class="menu-buttons back-button" id="back-to-upload"><i
+                                        class="ph ph-arrow-left"></i>&nbsp;Cambiar foto</button>
+                                <button type="submit" class="analize-button" id="confirm-match">Confirmar
+                                    partido</button>
                             </div>
                         </form>
                     </section>
@@ -180,7 +205,8 @@
                         <p class="mr-summary" id="success-summary"></p>
                         <p class="mr-success-note" id="success-note" hidden></p>
                         <div class="mr-actions">
-                            <button type="button" class="analize-button" id="register-another-button">Registrar otro partido</button>
+                            <button type="button" class="analize-button" id="register-another-button">Registrar otro
+                                partido</button>
                         </div>
                     </section>
                 </div>
@@ -189,7 +215,8 @@
             <!-- MIS ESTADISTICAS -->
             <div class="user-stats-menu">
                 <div class="user-stats-content">
-                    <button type="button" class="menu-buttons back-button" id="back-from-stats"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+                    <button type="button" class="menu-buttons back-button" id="back-from-stats"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
                     <!-- CARGANDO -->
                     <section class="us-card us-card-center" id="us-loading" role="status" aria-live="polite" hidden>
@@ -227,7 +254,8 @@
 
                                 <div class="us-level">
                                     <span class="us-level-badge" data-field="level_label"></span>
-                                    <div class="us-xp-bar" id="us-xp-bar" role="progressbar" aria-label="Experiencia del nivel actual" aria-valuemin="0">
+                                    <div class="us-xp-bar" id="us-xp-bar" role="progressbar"
+                                        aria-label="Experiencia del nivel actual" aria-valuemin="0">
                                         <div class="us-xp-fill" id="us-xp-fill"></div>
                                     </div>
                                     <div class="us-xp-text">
@@ -285,7 +313,8 @@
                                 <ul class="us-legend">
                                     <li><i class="us-dot us-win"></i>Victorias <strong data-field="wins"></strong></li>
                                     <li><i class="us-dot us-draw"></i>Empates <strong data-field="draws"></strong></li>
-                                    <li><i class="us-dot us-loss"></i>Derrotas <strong data-field="losses"></strong></li>
+                                    <li><i class="us-dot us-loss"></i>Derrotas <strong data-field="losses"></strong>
+                                    </li>
                                 </ul>
 
                                 <div class="us-goals">
@@ -314,7 +343,8 @@
                         <!-- PROMEDIOS POR PARTIDO -->
                         <section class="us-card us-averages" id="us-averages">
                             <div class="us-averages-head">
-                                <h3>Promedios por partido <small class="us-note" data-field="averages_note"></small></h3>
+                                <h3>Promedios por partido <small class="us-note" data-field="averages_note"></small>
+                                </h3>
                                 <ul class="us-legend">
                                     <li><i class="us-dot us-mine"></i>Tú</li>
                                     <li><i class="us-dot us-rival"></i>Tus rivales</li>
@@ -358,7 +388,8 @@
             <!-- MI CUENTA -->
             <div class="my-account-menu">
                 <div class="my-account-content">
-                    <button type="button" class="menu-buttons back-button" id="back-from-account"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+                    <button type="button" class="menu-buttons back-button" id="back-from-account"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
                     <!-- CARGANDO -->
                     <section class="ma-card ma-card-center" id="ma-loading" role="status" aria-live="polite" hidden>
@@ -379,14 +410,15 @@
                         <!-- TARJETA DE PERFIL -->
                         <section class="ma-card ma-profile">
                             <div class="ma-avatar">
-                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="Avatar" id="ma-avatar-img">
+                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="Avatar"
+                                    id="ma-avatar-img">
                             </div>
 
                             <div class="ma-profile-info">
                                 <h2>Mi <span>Cuenta</span></h2>
-                                <p class="ma-nickname" data-field="nickname">ITsF4CU</p>
-                                <p class="ma-email" data-field="email">facundoleonel40@gmail.com</p>
-                                <p class="ma-joined" data-field="joined">Miembro desde: Octubre 2026</p>
+                                <p class="ma-nickname" data-field="nickname">[NICKNAME]</p>
+                                <p class="ma-email" data-field="email">[EMAIL_ADDRESS]</p>
+                                <p class="ma-joined" data-field="joined">Miembro desde: [FECHA]</p>
                             </div>
 
                             <div class="ma-profile-actions">
@@ -400,15 +432,18 @@
                             <form id="ma-password-form" novalidate>
                                 <div class="ma-field">
                                     <label for="ma-current-password">Contraseña actual</label>
-                                    <input type="password" id="ma-current-password" name="current_password" placeholder="Ingresa tu contraseña actual">
+                                    <input type="password" id="ma-current-password" name="current_password"
+                                        placeholder="Ingresa tu contraseña actual">
                                 </div>
                                 <div class="ma-field">
                                     <label for="ma-new-password">Nueva contraseña</label>
-                                    <input type="password" id="ma-new-password" name="new_password" placeholder="Ingresa tu nueva contraseña">
+                                    <input type="password" id="ma-new-password" name="new_password"
+                                        placeholder="Ingresa tu nueva contraseña">
                                 </div>
                                 <div class="ma-field">
                                     <label for="ma-confirm-password">Confirmar contraseña</label>
-                                    <input type="password" id="ma-confirm-password" name="confirm_password" placeholder="Confirma tu nueva contraseña">
+                                    <input type="password" id="ma-confirm-password" name="confirm_password"
+                                        placeholder="Confirma tu nueva contraseña">
                                 </div>
                                 <div class="ma-actions">
                                     <button type="submit" class="analize-button">Actualizar contraseña</button>
@@ -422,7 +457,8 @@
                             <div class="ma-preference-item">
                                 <div class="ma-preference-info">
                                     <span class="ma-preference-label">Notificaciones por email</span>
-                                    <span class="ma-preference-desc">Recibir notificaciones sobre partidos y solicitudes de amistad</span>
+                                    <span class="ma-preference-desc">Recibir notificaciones sobre partidos y solicitudes
+                                        de amistad</span>
                                 </div>
                                 <label class="ma-toggle">
                                     <input type="checkbox" id="ma-email-notifications" checked>
@@ -432,7 +468,8 @@
                             <div class="ma-preference-item">
                                 <div class="ma-preference-info">
                                     <span class="ma-preference-label">Perfil público</span>
-                                    <span class="ma-preference-desc">Permitir que otros usuarios vean tu perfil y estadísticas</span>
+                                    <span class="ma-preference-desc">Permitir que otros usuarios vean tu perfil y
+                                        estadísticas</span>
                                 </div>
                                 <label class="ma-toggle">
                                     <input type="checkbox" id="ma-public-profile" checked>
@@ -467,8 +504,10 @@
                         <!-- ELIMINAR CUENTA -->
                         <section class="ma-card ma-danger">
                             <h3><i class="ph ph-warning"></i>&nbsp;Zona de peligro</h3>
-                            <p class="ma-danger-text">Eliminar tu cuenta borrará permanentemente todos tus datos, partidos y estadísticas. Esta acción no se puede deshacer.</p>
-                            <button type="button" class="ma-danger-button" id="ma-delete-account">Eliminar mi cuenta</button>
+                            <p class="ma-danger-text">Eliminar tu cuenta borrará permanentemente todos tus datos,
+                                partidos y estadísticas. Esta acción no se puede deshacer.</p>
+                            <button type="button" class="ma-danger-button" id="ma-delete-account">Eliminar mi
+                                cuenta</button>
                         </section>
                     </div>
                 </div>
@@ -477,7 +516,8 @@
             <!-- MIS PARTIDOS -->
             <div class="my-matches-menu">
                 <div class="my-matches-content">
-                    <button type="button" class="menu-buttons back-button" id="back-from-matches"><i class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+                    <button type="button" class="menu-buttons back-button" id="back-from-matches"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
                     <!-- CARGANDO -->
                     <section class="mm-card mm-card-center" id="mm-loading" role="status" aria-live="polite" hidden>
@@ -497,7 +537,8 @@
                     <section class="mm-card mm-card-center" id="mm-empty" hidden>
                         <i class="ph ph-soccer-ball mm-empty-icon"></i>
                         <h2>Todavía no hay <span>partidos</span></h2>
-                        <p>No has registrado ningún partido todavía. ¡Registra tu primer partido y empieza a construir tu historial!</p>
+                        <p>No has registrado ningún partido todavía. ¡Registra tu primer partido y empieza a construir
+                            tu historial!</p>
                         <button type="button" class="analize-button" id="mm-register-first">Registrar partido</button>
                     </section>
 
@@ -507,7 +548,8 @@
                         <section class="mm-card mm-filters">
                             <div class="mm-search">
                                 <i class="ph ph-magnifying-glass"></i>
-                                <input type="text" id="mm-search-input" placeholder="Buscar partido por rival o equipo...">
+                                <input type="text" id="mm-search-input"
+                                    placeholder="Buscar partido por rival o equipo...">
                             </div>
                             <div class="mm-filter-buttons">
                                 <button type="button" class="mm-filter-btn active" data-filter="all">Todos</button>
@@ -556,7 +598,8 @@
     <!-- MODAL DE AMIGOS -->
     <div class="modal-backdrop hidden" id="friends-backdrop">
         <div class="friends-modal">
-            <button type="button" class="menu-buttons back-button" id="close-friends-modal"><i class="ph ph-arrow-left"></i>&nbsp;Volver</button>
+            <button type="button" class="menu-buttons back-button" id="close-friends-modal"><i
+                    class="ph ph-arrow-left"></i>&nbsp;Volver</button>
             <div class="friends-modal-title">
                 <h2>Mis <span>Amigos</span></h2>
             </div>
@@ -608,4 +651,5 @@
     <script src="src/public/JS/my-account.js"></script>
     <script src="src/public/JS/my-matches.js"></script>
 </body>
+
 </html>

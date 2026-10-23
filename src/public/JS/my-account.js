@@ -1,5 +1,6 @@
 (function () {
-    const api = window.pesitoApi;
+
+    const base_url = "https://pesito-ejyz.onrender.com";
 
     const state = {
         userData: null,
@@ -32,15 +33,17 @@
     }
 
     function populateAccountData(userData) {
-        const elements = document.querySelectorAll('[data-field]');
+        const data = userData?.data || userData?.user || userData || {};
+        const elements = document.querySelectorAll('.ma-profile-info [data-field]');
         elements.forEach(element => {
             const field = element.getAttribute('data-field');
-            if (userData[field] !== undefined) {
-                if (field === 'joined') {
-                    element.textContent = `Miembro desde: ${formatDate(userData[field])}`;
-                } else {
-                    element.textContent = userData[field];
+            if (field === 'joined') {
+                const joinedValue = data.joined || data.created_at || data.createdAt;
+                if (joinedValue) {
+                    element.textContent = `Miembro desde: ${formatDate(joinedValue)}`;
                 }
+            } else if (data[field] !== undefined && data[field] !== null) {
+                element.textContent = data[field];
             }
         });
     }
@@ -51,25 +54,18 @@
         showLoading();
 
         try {
-            const userData = await api.users.getCurrentUser();
+            const response = await fetch(`${base_url}/users/me`, {
+                credentials: 'include'
+            });
+            const userData = await response.json();
+            if (!response.ok) {
+                throw new Error(userData?.message || `Error del servidor (${response.status})`);
+            }
             state.userData = userData;
             populateAccountData(userData);
             showDashboard();
         } catch (error) {
-            console.error('Error al cargar datos de cuenta:', error);
-            // DATOS DE EJEMPLO PARA PODER VER LA INTERFAZ
-            const mockData = {
-                nickname: 'ITsF4CU',
-                email: 'facundoleonel40@gmail.com',
-                joined: '2026-10-14',
-                total_matches: 0,
-                total_friends: 0,
-                total_wins: 0,
-                level: 1
-            };
-            state.userData = mockData;
-            populateAccountData(mockData);
-            showDashboard();
+            showError("Error al cargar datos de cuenta: " + error.message);
         } finally {
             state.isLoading = false;
         }
