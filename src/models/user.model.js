@@ -132,11 +132,40 @@ const deleteUser = async (id) => {
     await pool.query(query, [id]);
 };
 
+const findPasswordById = async (id) => {
+    const query = 'SELECT id, password FROM users WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+};
+
+const updateUserData = async (id, fields = {}) => {
+    const setClauses = [];
+    const values = [];
+    let index = 1;
+
+    const allowedColumns = ['nickname', 'email', 'password'];
+
+    for (const column of allowedColumns) {
+        if (fields[column] !== undefined && fields[column] !== null) {
+            setClauses.push(`${column} = $${index++}`);
+            values.push(fields[column]);
+        }
+    }
+
+    if (setClauses.length === 0) return;
+
+    values.push(id);
+    const query = `UPDATE users SET ${setClauses.join(', ')} WHERE id = $${index}`;
+    await pool.query(query, values);
+};
+
 module.exports = {
     findByEmail,
     create,
     findByNickname,
     findById,
     getStatsByUserId,
-    deleteUser
+    deleteUser,
+    findPasswordById,
+    updateUserData
 };

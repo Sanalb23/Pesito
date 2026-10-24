@@ -5,7 +5,8 @@ const {
     getUserStats,
     getCurrentUser,
     getUserById,
-    deleteAccount
+    deleteAccount,
+    changePassword
 } = require("../controllers/user.controller");
 const { verifyToken } = require("../middlewares/auth");
 const {
@@ -21,6 +22,8 @@ router.get("/me", verifyToken, getCurrentUser);
 router.delete("/me", verifyToken, deleteAccount);
 router.get("/me/matches", verifyToken, getMyMatches);
 router.get("/me/stats", verifyToken, getMyStats);
+router.patch("/me/change-password", verifyToken, changePassword);
+
 
 router.get("/:userId", verifyToken, getUserById);
 router.get("/:userId/matches", verifyToken, getMatchesByUserId);

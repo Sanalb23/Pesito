@@ -75,6 +75,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
 | **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
+| **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
 | **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
 | **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial de partidos del usuario autenticado. |
@@ -375,7 +376,47 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.5 Obtener Partidos del Usuario Autenticado
+### 2.5 Cambiar Contraseña del Usuario Autenticado
+- **Ruta:** `PATCH /users/me/change-password`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Permite cambiar la contraseña del usuario actualmente autenticado verificando la contraseña actual y encriptando la nueva contraseña con `bcryptjs` (10 salt rounds).
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "currentPassword": "miPassword123",
+  "newPassword": "miNuevaPassword123"
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `currentPassword` | `string` | Sí | Contraseña actual del usuario. |
+| `newPassword` | `string` | Sí | Nueva contraseña. Debe tener entre 8 y 12 caracteres. |
+
+#### Respuestas:
+- **`200 OK`**: Contraseña cambiada exitosamente.
+  ```json
+  { "message": "Contraseña cambiada" }
+  ```
+- **`400 Bad Request`**: Datos inválidos o incorrectos.
+  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes ingresar la contraseña actual y la nueva contraseña"}`
+  - Contraseña nueva inválida: `{"error": "INVALID_PASSWORD", "message": "La contraseña debe tener entre 8 y 12 caracteres"}`
+  - Contraseña actual incorrecta: `{"error": "INVALID_CREDENTIALS", "message": "La contraseña actual es incorrecta"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CHANGE_PASSWORD_ERROR", "message": "Error al cambiar la contraseña" }
+  ```
+
+---
+
+### 2.6 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene todos los partidos jugados por el usuario actual (ya sea como local o como visitante), ordenados cronológicamente de forma descendente.
@@ -409,7 +450,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.6 Obtener Partidos de un Usuario por ID
+### 2.7 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta.
@@ -438,7 +479,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.7 Obtener Estadísticas del Usuario Autenticado
+### 2.8 Obtener Estadísticas del Usuario Autenticado
 - **Ruta:** `GET /users/me/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
@@ -504,7 +545,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.8 Obtener Estadísticas de un Usuario por ID
+### 2.9 Obtener Estadísticas de un Usuario por ID
 - **Ruta:** `GET /users/:userId/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
