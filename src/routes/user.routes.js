@@ -6,7 +6,8 @@ const {
     getCurrentUser,
     getUserById,
     deleteAccount,
-    changePassword
+    changePassword,
+    updateAccount
 } = require("../controllers/user.controller");
 const { verifyToken } = require("../middlewares/auth");
 const {
@@ -19,6 +20,7 @@ const router = express.Router();
 router.get("/search", verifyToken, searchByNickname);
 
 router.get("/me", verifyToken, getCurrentUser);
+router.patch("/me", verifyToken, updateAccount);
 router.delete("/me", verifyToken, deleteAccount);
 router.get("/me/matches", verifyToken, getMyMatches);
 router.get("/me/stats", verifyToken, getMyStats);

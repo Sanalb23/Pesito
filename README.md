@@ -75,6 +75,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
 | **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
+| **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nickname y/o email) del usuario autenticado. |
 | **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
 | **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
@@ -315,7 +316,46 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.3 Obtener Perfil de un Usuario por ID
+### 2.3 Actualizar Perfil del Usuario Autenticado
+- **Ruta:** `PATCH /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Permite actualizar de forma parcial los datos del perfil (`nickname` y/o `email`) del usuario actualmente autenticado. Se verifica la unicidad de los campos ante la base de datos (PostgreSQL `23505`) y que el nickname no contenga espacios.
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "nickname": "nuevoNickname",
+  "email": "nuevoEmail@ejemplo.com"
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `nickname` | `string` | No* | Único en el sistema. No debe contener espacios. |
+| `email` | `string` | No* | Único en el sistema. |
+
+*\* Al menos uno de los dos campos (`nickname` o `email`) debe ser proporcionado.*
+
+#### Respuestas:
+- **`200 OK`**: Datos actualizados correctamente.
+  ```json
+  { "message": "Datos del usuario actualizados" }
+  ```
+- **`400 Bad Request`**: Datos inválidos, faltantes o duplicados.
+  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes enviar al menos un nickname o un email"}`
+  - Nickname con espacios: `{"error": "INVALID_NICKNAME", "message": "El nickname no debe contener espacios"}`
+  - Email ya en uso: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
+  - Nickname ya en uso: `{"error": "NICKNAME_IN_USE", "message": "El nickname ya está en uso"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "UPDATE_USER_ERROR", "message": "Error al actualizar los datos del usuario" }
+  ```
+
+---
+
+### 2.4 Obtener Perfil de un Usuario por ID
 - **Ruta:** `GET /users/:userId`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos públicos del perfil de un usuario específico identificado por su `userId` (excluyendo datos privados como email y fecha de registro).
@@ -354,7 +394,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.4 Eliminar Cuenta del Usuario Autenticado
+### 2.5 Eliminar Cuenta del Usuario Autenticado
 - **Ruta:** `DELETE /users/me`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Elimina de forma permanente la cuenta del usuario autenticado en la base de datos.
@@ -376,7 +416,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.5 Cambiar Contraseña del Usuario Autenticado
+### 2.6 Cambiar Contraseña del Usuario Autenticado
 - **Ruta:** `PATCH /users/me/change-password`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Permite cambiar la contraseña del usuario actualmente autenticado verificando la contraseña actual y encriptando la nueva contraseña con `bcryptjs` (10 salt rounds).
@@ -416,7 +456,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.6 Obtener Partidos del Usuario Autenticado
+### 2.7 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene todos los partidos jugados por el usuario actual (ya sea como local o como visitante), ordenados cronológicamente de forma descendente.
@@ -450,7 +490,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.7 Obtener Partidos de un Usuario por ID
+### 2.8 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta.
@@ -479,7 +519,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.8 Obtener Estadísticas del Usuario Autenticado
+### 2.9 Obtener Estadísticas del Usuario Autenticado
 - **Ruta:** `GET /users/me/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
@@ -545,7 +585,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.9 Obtener Estadísticas de un Usuario por ID
+### 2.10 Obtener Estadísticas de un Usuario por ID
 - **Ruta:** `GET /users/:userId/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.

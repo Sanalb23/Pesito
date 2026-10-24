@@ -190,6 +190,44 @@ const changePassword = async (req, res) => {
     }
 };
 
+const updateAccount = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+
+        if (!userId) {
+            return res.status(400).json({ error: "INVALID_USER_ID", message: "Usuario no valido" });
+        }
+
+        const { nickname, email } = req.body;
+
+        if (!nickname && !email) {
+            return res.status(400).json({ error: "MISSING_FIELDS", message: "Debes enviar al menos un nickname o un email" });
+        }
+
+        if (nickname && nickname.includes(' ')) {
+            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nickname no debe contener espacios" });
+        }
+
+        await updateUserData(userId, { nickname, email });
+
+        res.status(200).json({
+            message: "Datos del usuario actualizados",
+        });
+    } catch (error) {
+        if (error.code === '23505') {
+            if (error.constraint === 'users_email_key') {
+                return res.status(400).json({ error: "EMAIL_IN_USE", message: "El email ya está en uso" });
+            }
+
+            if (error.constraint === 'users_nickname_key') {
+                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nickname ya está en uso" });
+            }
+        }
+
+        res.status(500).json({ error: "UPDATE_USER_ERROR", message: "Error al actualizar los datos del usuario" });
+    }
+};
+
 module.exports = {
     searchByNickname,
     getMyStats,
@@ -197,5 +235,6 @@ module.exports = {
     getCurrentUser,
     getUserById,
     deleteAccount,
-    changePassword
+    changePassword,
+    updateAccount
 };
