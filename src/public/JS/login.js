@@ -59,7 +59,7 @@ if (registerForm) {
 
             if (response.ok) {
                 alert("¡Cuenta creada y sesión iniciada con éxito!");
-                window.location.href = "menu.html";
+                window.location.href = "main.html";
             } else {
                 alert("Error al registrarse: " + resultado.message);
             }

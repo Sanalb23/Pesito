@@ -231,3 +231,98 @@
         gap: 10px;
     }
 }
+
+/* Paneles del modal de amigos */
+.fm-panel-list,
+.fm-panel-invite {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.fm-panel-invite.hidden {
+    display: none;
+}
+
+.fm-panel-list.hidden {
+    display: none;
+}
+
+/* Input de búsqueda de jugadores */
+#player-search-input {
+    width: 90%;
+    height: 30px;
+    background: none;
+    border: none;
+    background-color: rgb(185, 185, 185);
+    padding: 0 10px;
+}
+
+/* Contenedor de resultados de búsqueda */
+.fm-results {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+    padding-bottom: 30px;
+}
+
+/* Tags de estado de amistad */
+.fm-tag {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.fm-tag-friend {
+    background-color: rgb(76, 175, 80);
+    color: white;
+}
+
+.fm-tag-pending {
+    background-color: rgb(255, 193, 7);
+    color: black;
+}
+
+/* Botones de acción en resultados de búsqueda */
+.invite-friend-btn,
+.accept-friend-btn {
+    background: none;
+    border: none;
+    background-color: yellow;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-family: 'Montserrat';
+    font-weight: bold;
+    cursor: pointer;
+    transition: box-shadow 0.3s ease;
+}
+
+.invite-friend-btn:hover,
+.accept-friend-btn:hover {
+    box-shadow: 0 0 20px yellow;
+}
+
+/* Equipo favorito del usuario */
+.pl-team {
+    font-size: 12px;
+    color: rgb(200, 200, 200);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.is-offline {
+    background-color: rgb(100, 100, 100);
+}

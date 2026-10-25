@@ -1,0 +1,467 @@
+/* CAMPANITA DEL HEADER (escritorio y celular) */
+.desktop-nav a {
+    position: relative;
+}
+
+.nav-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: yellow;
+    color: black;
+    border-radius: 9px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.mobile-bell {
+    display: none;
+    position: relative;
+    width: 46px;
+    height: 46px;
+    align-items: center;
+    justify-content: center;
+    background-color: black;
+    border-radius: 50%;
+    color: white;
+    font-size: 26px;
+    text-decoration: none;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.mobile-bell:hover,
+.mobile-bell:active {
+    color: yellow;
+    text-shadow: 0 0 20px rgb(255, 255, 0);
+}
+
+.mobile-bell .nav-badge {
+    top: -2px;
+    right: -2px;
+}
+
+
+/* TRANSICION (el fade-out lo define match-register.css) */
+.notifications-content {
+    transition: opacity 0.4s ease;
+}
+
+
+/* CONTENEDOR DE NOTIFICACIONES (se abre con el enlace href="#notifications-menu") */
+.notifications-menu {
+    --nt-yellow: yellow;
+    --nt-card: rgb(31, 31, 31);
+    --nt-card-light: rgb(45, 45, 45);
+    --nt-surface: rgb(70, 70, 68);
+    --nt-muted: rgb(185, 185, 185);
+    --nt-win: rgb(76, 175, 80);
+    --nt-loss: rgb(229, 83, 83);
+    --nt-info: rgb(100, 160, 255);
+
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    padding: calc(10vh + 10px) 20px 20px;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+    color: white;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.notifications-menu:target {
+    display: block;
+}
+
+.notifications-menu [hidden] {
+    display: none !important;
+}
+
+.notifications-content {
+    width: 100%;
+    max-width: 760px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.notifications-content .back-button {
+    text-decoration: none;
+}
+
+
+/* TARJETAS */
+.nt-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 30px;
+    background-color: var(--nt-card);
+    border-radius: 20px;
+}
+
+.nt-card-center {
+    align-items: center;
+    text-align: center;
+    padding: 50px 30px;
+}
+
+.nt-card h2 span {
+    color: var(--nt-yellow);
+}
+
+.nt-card-center p {
+    color: var(--nt-muted);
+    line-height: 1.4;
+}
+
+.nt-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid var(--nt-surface);
+    border-top-color: var(--nt-yellow);
+    border-radius: 50%;
+    animation: nt-spin 0.9s linear infinite;
+}
+
+@keyframes nt-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.nt-error-icon {
+    font-size: 72px;
+    color: var(--nt-loss);
+}
+
+.nt-empty-icon {
+    font-size: 72px;
+    color: var(--nt-yellow);
+}
+
+.notifications-menu .analize-button {
+    font-family: 'Montserrat', sans-serif;
+    padding: 12px 20px;
+}
+
+
+/* ENCABEZADO */
+.nt-head {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+}
+
+.nt-head-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.nt-unread-count {
+    color: var(--nt-muted);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.nt-unread-count strong {
+    color: var(--nt-yellow);
+}
+
+.nt-link-button {
+    padding: 8px 14px;
+    background: none;
+    border: 2px solid var(--nt-surface);
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.nt-link-button:hover {
+    border-color: var(--nt-yellow);
+    color: var(--nt-yellow);
+}
+
+
+/* FILTROS (solo CSS: los radios van antes de la lista) */
+.nt-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.nt-filter-input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.nt-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.nt-filters label {
+    padding: 8px 16px;
+    background-color: var(--nt-card);
+    border: 2px solid var(--nt-surface);
+    border-radius: 20px;
+    color: var(--nt-muted);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.nt-filters label:hover {
+    border-color: var(--nt-yellow);
+    color: white;
+}
+
+#nt-filter-all:checked ~ .nt-filters label[for="nt-filter-all"],
+#nt-filter-matches:checked ~ .nt-filters label[for="nt-filter-matches"],
+#nt-filter-friends:checked ~ .nt-filters label[for="nt-filter-friends"] {
+    background-color: var(--nt-yellow);
+    border-color: var(--nt-yellow);
+    color: black;
+}
+
+#nt-filter-matches:focus-visible ~ .nt-filters label[for="nt-filter-matches"],
+#nt-filter-friends:focus-visible ~ .nt-filters label[for="nt-filter-friends"],
+#nt-filter-all:focus-visible ~ .nt-filters label[for="nt-filter-all"] {
+    outline: 2px solid var(--nt-yellow);
+    outline-offset: 2px;
+}
+
+#nt-filter-matches:checked ~ .nt-list .nt-kind-friend,
+#nt-filter-friends:checked ~ .nt-list .nt-kind-match {
+    display: none;
+}
+
+
+/* LISTA */
+.nt-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.nt-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 18px 20px;
+    background-color: var(--nt-card);
+    border-left: 4px solid transparent;
+    border-radius: 15px;
+}
+
+.nt-item.nt-unread {
+    border-left-color: var(--nt-yellow);
+    background-color: rgb(38, 38, 30);
+}
+
+.nt-icon {
+    flex-shrink: 0;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--nt-yellow);
+    color: black;
+    border-radius: 50%;
+    font-size: 22px;
+}
+
+.nt-icon-ok {
+    background-color: var(--nt-win);
+}
+
+.nt-icon-warn {
+    background-color: var(--nt-loss);
+    color: white;
+}
+
+.nt-icon-info {
+    background-color: var(--nt-info);
+}
+
+.nt-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nt-text {
+    line-height: 1.5;
+}
+
+.nt-text .pl-chip {
+    margin: 0 2px;
+}
+
+.nt-detail {
+    padding: 10px 14px;
+    background-color: var(--nt-card-light);
+    border-radius: 10px;
+    font-size: 14px;
+}
+
+.nt-detail strong {
+    color: var(--nt-yellow);
+}
+
+.nt-detail small {
+    display: block;
+    margin-top: 2px;
+    color: var(--nt-muted);
+    font-size: 12px;
+}
+
+.nt-change {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+}
+
+.nt-change del {
+    color: var(--nt-muted);
+}
+
+.nt-change ins {
+    color: var(--nt-yellow);
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.nt-time {
+    color: var(--nt-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.nt-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
+}
+
+.notifications-menu .nt-actions .analize-button,
+.nt-reject-button {
+    padding: 8px 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+}
+
+.nt-reject-button {
+    background: none;
+    border: 2px solid var(--nt-surface);
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.nt-reject-button:hover {
+    border-color: var(--nt-loss);
+    color: var(--nt-loss);
+}
+
+.nt-dismiss {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    color: var(--nt-muted);
+    cursor: pointer;
+    font-size: 18px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nt-dismiss:hover {
+    background-color: var(--nt-surface);
+    color: white;
+}
+
+
+/* PANTALLAS CHICAS */
+@media (max-width: 768px) {
+    .mobile-bell {
+        display: flex;
+    }
+}
+
+@media (max-width: 600px) {
+    .nt-card {
+        padding: 20px;
+    }
+
+    .nt-item {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .nt-dismiss {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    .nt-actions > * {
+        flex: 1 1 auto;
+    }
+
+    .nt-head .nt-link-button {
+        width: 100%;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .nt-card {
+        padding: 12px 16px;
+    }
+
+    .nt-item {
+        padding: 12px;
+    }
+
+    .mobile-bell {
+        width: 36px;
+        height: 36px;
+        margin-top: 40px;
+        font-size: 20px;
+    }
+}
