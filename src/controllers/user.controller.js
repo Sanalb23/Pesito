@@ -10,6 +10,7 @@ const {
 } = require('../models/user.model');
 
 const { parseId } = require('../utils/validators');
+const { clearAuthCookies } = require('../utils/cookies');
 
 const searchByNickname = async (req, res) => {
     try {
@@ -140,6 +141,8 @@ const deleteAccount = async (req, res) => {
         }
 
         await deleteUser(userId);
+
+        clearAuthCookies(res);
 
         res.status(200).json({
             message: "Cuenta eliminada",
