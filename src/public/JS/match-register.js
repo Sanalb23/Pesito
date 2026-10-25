@@ -17,12 +17,13 @@
         { key: 'possession', label: 'Posesión (%)', max: 100 }
     ];
 
-    // AQUI DEFINIMOS UNA VARIABLE (ARRAY) QUE POSEE LOS 4 PASOS POR LOS QUE VA A PASAR EL FORMULARIO:
-    // 1) SUBIDA
-    // 2) CARGA DEL ARCHIVO
-    // 3) REVISION (DONDE EL USUARIO MODIFICA ALGUN PARAMETRO SI ES QUE SALIO MAL EL ESCANEO)
-    // 4) FINALIZACION
-    const STEP_NAMES = ['upload', 'loading', 'review', 'success'];
+    // AQUI DEFINIMOS UNA VARIABLE (ARRAY) QUE POSEE LOS 5 PASOS POR LOS QUE VA A PASAR EL FORMULARIO:
+    // 1) SELECCION DE JUEGO Y JUGADORES
+    // 2) SUBIDA DE LA FOTO
+    // 3) CARGA / ANALISIS
+    // 4) REVISION (DONDE EL USUARIO MODIFICA ALGUN PARAMETRO SI ES QUE SALIO MAL EL ESCANEO)
+    // 5) FINALIZACION
+    const STEP_NAMES = ['setup', 'upload', 'loading', 'review', 'success'];
 
     // AQUI DEFINIMOS EL TAMAÑO MAXIMO QUE DEBE TENER LA IMAGEN
     const MAX_PHOTO_SIZE_MB = 10;
@@ -37,19 +38,36 @@
     const LAST_GAME_STORAGE_KEY = 'pesito:lastGameId';
 
 
-    const api = window.pesitoApi;
+    const api = window.matchApi || window.pesitoApi;
 
-    // AGARRAMOS EL ELEMENTO MATCH-REGISTER DEL DOCUMENTO HTML
-    const openRegisterLink = document.querySelector('#match-register');
+    // BOTONES QUE ABREN LA SECCION REGISTRAR PARTIDO
+    const openRegisterLinks = document.querySelectorAll('#match-register, #match-register-mobile, #mm-register-first');
 
     // UN MINI ARRAY DE OBJETOS PARA MOSTRAR LOS PASOS QUE SE REALIZAN EN CADA ELEMENTO CORRESPONDIENTE DEL HTML
     const steps = {
+        setup: document.querySelector('#step-setup'),
         upload: document.querySelector('#step-upload'),
         loading: document.querySelector('#step-loading'),
         review: document.querySelector('#step-review'),
         success: document.querySelector('#step-success')
     };
-    
+
+    // ---------------- SECCION DE CONFIGURACION PREVIA (JUEGO Y JUGADORES) -----------------
+    const setupLoading = document.querySelector('#mr-setup-loading');
+    const setupErrorCard = document.querySelector('#mr-setup-error');
+    const setupErrorMessage = document.querySelector('#mr-setup-error-message');
+    const setupRetryButton = document.querySelector('#mr-setup-retry-button');
+    const teamsLoading = document.querySelector('#mr-teams-loading');
+
+    const setupForm = document.querySelector('#setup-form');
+    const setupGameSelect = document.querySelector('#setup-game-select');
+    const setupHomePlayerSelect = document.querySelector('#setup-home-player-select');
+    const setupAwayPlayerSelect = document.querySelector('#setup-away-player-select');
+    const setupError = document.querySelector('#setup-error');
+    const setupManualButton = document.querySelector('#setup-manual-button');
+    const backToSetupButton = document.querySelector('#back-to-setup');
+
+    // ---------------- SECCION DE SUBIDA DE FOTO -----------------
     // ESTA VARIABLE REFERENCIA AL ELEMENTO DEL HTML QUE RECIBE LA IMAGEN QUE LA IA ANALIZARA
     const photoInput = document.querySelector('#result-photo-input');
 
@@ -70,10 +88,9 @@
 
     // ---------------- SECCION DE REVISION DE RESULTADOS -----------------
 
-    // ESTA VARIABLE REFERENCIA AL CONTENEDOR DE LA REVISION DE RESULTADOS (EL CONTENEODR GENERAL ME REFIERO, O SEA LA CARD XD)
+    // ESTA VARIABLE REFERENCIA AL CONTENEDOR DE LA REVISION DE RESULTADOS
     const reviewForm = document.querySelector('#review-form');
 
-    // HONESTAMENTE NO TENGO IDEA DE QUE ES ESTA VARIABLE XDD
     const reviewNotice = document.querySelector('#review-notice');
 
     // ESTA VARIABLE REFERENCIA AL CONTENEDOR DE LA LISTA DE ERRORES QUE PUEDE TENER EL CONTENEDOR DE LOS RESULTADOS
@@ -82,22 +99,23 @@
     // ESTA VARIABLE REFERENCIA A LA LISTA DE LOS ERRORES
     const reviewErrorsList = document.querySelector('#review-errors-list');
 
-    // ESTA VARIABLE REFERENCIA AL CONTENEDOR DONDE ESTA EL INPUT PARA SELECCIONAR EL JUEGO ASOCIADO A LOS RESULTADOS QUE EL USUARIO A SUBIDO
+    // ESTA VARIABLE REFERENCIA AL CONTENEDOR DONDE ESTA EL INPUT PARA SELECCIONAR EL JUEGO ASOCIADO A LOS RESULTADOS
     const gameSelect = document.querySelector('#game-select');
 
-    // ESTA VARIABLE REFERENCIA AL INPUT PARA SELECCIONAR EL USUARIO CONTRA EL QUE SE HA JUGADO EL PARTIDO
-    const rivalSelect = document.querySelector('#rival-select');
+    // SELECTORES DIRECTOS PARA JUGADOR LOCAL Y JUGADOR VISITANTE
+    const homePlayerSelect = document.querySelector('#home-player-select');
+    const awayPlayerSelect = document.querySelector('#away-player-select');
 
-    // ESTA VARIABLE REFERENCIA AL INPUT DONDE SE SELECCIONA EL EQUIPO LOCAL
+    // SUBSELECTORES DE LIGAS Y EQUIPOS
+    const homeLeagueSelect = document.querySelector('#home-league-select');
     const homeTeamSelect = document.querySelector('#home-team-select');
-
-    // ESTA VARIABLE REFERENCIA AL INPUT DONDE SE SELECCION EL EQUIPO VISITANTE
+    const awayLeagueSelect = document.querySelector('#away-league-select');
     const awayTeamSelect = document.querySelector('#away-team-select');
 
     // ESTA VARIABLE REFERENCIA AL CONTENEDOR DONDE SE VAN A MOSTRAR LAS ESTADISTICAS DEL PARTIDO QUE EL USUARIO HA REGISTRADO
     const statsList = document.querySelector('#stats-list');
 
-    // ESTA VARIABLE REFERENCIA AL BOTON POR EL CUAL SE PUEDEN VOLVER A AGREGAR UNA IMAGEN LA CUAL EL USUARIO HAYA CONFUNDIDO-
+    // ESTA VARIABLE REFERENCIA AL BOTON POR EL CUAL SE PUEDE VOLVER A LA SUBIDA DE FOTO
     const backToUploadButton = document.querySelector('#back-to-upload');
 
     // ESTA VARIABLE REFERENCIA AL BOTON MEDIANTE EL CUAL SE REGISTRA EL PARTIDO ESCANEADO
@@ -120,25 +138,68 @@
         teamsFailed: false,
         games: [],
         friends: [],
-        currentUser: null
+        currentUser: null,
+        setupHomePlayer: '',
+        setupAwayPlayer: '',
+        reviewHomePlayer: '',
+        reviewAwayPlayer: ''
     };
 
-    // Esta es una función que oculta o muestra los cuatro pasos de la pantalla comparando el nombre recibido con el nombre de cada paso.
+    // Esta es una función que oculta o muestra los pasos de la pantalla comparando el nombre recibido con el nombre de cada paso.
     function showStep(stepName) {
+        if (setupLoading) setupLoading.hidden = true;
+        if (setupErrorCard) setupErrorCard.hidden = true;
+        if (teamsLoading) teamsLoading.hidden = true;
         STEP_NAMES.forEach((name) => {
-            steps[name].hidden = name !== stepName;
+            if (steps[name]) {
+                steps[name].hidden = name !== stepName;
+            }
         });
     }
 
-    // Reinicia el flujo completo: incrementa los contadores de peticiones para cancelar llamadas previas, borra el análisis, limpia errores, limpia la foto y muestra la pantalla inicial de subida.
-    function resetFlow() {
+    // Muestra la pantalla de carga con spinner circular en el paso de configuración
+    function showSetupLoading() {
+        if (setupErrorCard) setupErrorCard.hidden = true;
+        if (teamsLoading) teamsLoading.hidden = true;
+        STEP_NAMES.forEach((name) => {
+            if (steps[name]) steps[name].hidden = true;
+        });
+        if (setupLoading) setupLoading.hidden = false;
+    }
+
+    // Muestra la pantalla de carga con spinner circular al preparar los equipos para la carga manual
+    function showTeamsLoading() {
+        if (setupLoading) setupLoading.hidden = true;
+        if (setupErrorCard) setupErrorCard.hidden = true;
+        STEP_NAMES.forEach((name) => {
+            if (steps[name]) steps[name].hidden = true;
+        });
+        if (teamsLoading) teamsLoading.hidden = false;
+    }
+
+    // Muestra la pantalla de error en el paso de configuración con opción de reintentar
+    function showSetupError(message) {
+        if (setupLoading) setupLoading.hidden = true;
+        if (teamsLoading) teamsLoading.hidden = true;
+        STEP_NAMES.forEach((name) => {
+            if (steps[name]) steps[name].hidden = true;
+        });
+        if (setupErrorMessage) {
+            setupErrorMessage.textContent = message || 'Hubo un problema al cargar los juegos y amigos. Inténtalo de nuevo.';
+        }
+        if (setupErrorCard) setupErrorCard.hidden = false;
+    }
+
+    // Reinicia el flujo completo: borra el análisis, limpia errores, limpia la foto y muestra la pantalla de configuración inicial.
+    async function resetFlow() {
         state.analysisRequestId += 1;
         state.teamsRequestId += 1;
         state.analysis = null;
         clearPhoto();
         setUploadError('');
+        setSetupError('');
         clearErrors();
-        showStep('upload');
+        await initSetupStep();
     }
 
     // Evalúa un objeto de error retornado por el servidor y extrae el mensaje descriptivo si existe; de lo contrario, devuelve un mensaje por defecto (fallback).
@@ -180,6 +241,12 @@
     function setUploadError(message) {
         uploadError.textContent = message;
         uploadError.hidden = message === '';
+    }
+
+    // Escribe el mensaje de error de configuración previa y oculta la etiqueta si el texto está vacío.
+    function setSetupError(message) {
+        setupError.textContent = message;
+        setupError.hidden = message === '';
     }
 
     // Borra la imagen seleccionada liberando la memoria del navegador, resetea la vista previa, desactiva el botón de analizar y restablece la caja vacía.
@@ -230,9 +297,227 @@
         state.currentUser = currentUser;
     }
 
-    // Envía la imagen al servidor para ser analizada mientras carga los datos de referencia. Controla cancelaciones si el usuario reintenta en el medio y pasa al paso de revisión rellenando los campos automáticamente.
+    // Garantiza que los datos de referencia (juegos, amigos, usuario) estén cargados antes de interactuar con ellos.
+    async function ensureReferenceData() {
+        if (!state.currentUser || state.games.length === 0) {
+            await loadReferenceData();
+        }
+    }
+
+    // Genera la lista de opciones para los desplegables de jugadores (Usuario logueado, Amigos e Invitado).
+    function buildPlayerOptions() {
+        const myOption = state.currentUser
+            ? [{ value: String(state.currentUser.id), label: `${state.currentUser.nickname} (Yo)` }]
+            : [];
+        const friendOptions = state.friends.map((friend) => ({
+            value: String(friend.id),
+            label: friend.nickname
+        }));
+        const guestOption = { value: GUEST_VALUE, label: 'Invitado (sin cuenta)' };
+
+        return [...myOption, ...friendOptions, guestOption];
+    }
+
+    // Rellena los selectores del paso inicial de configuración (juego y jugadores local/visitante).
+    function fillSetupFields() {
+        fillSelect(setupGameSelect, 'Elige el juego', state.games.map((game) => ({
+            value: String(game.id),
+            label: `${game.name}`
+        })));
+        setupGameSelect.value = getInitialGameId();
+
+        const playerOptions = buildPlayerOptions();
+        fillSelect(setupHomePlayerSelect, 'Elige jugador local', playerOptions);
+        fillSelect(setupAwayPlayerSelect, 'Elige jugador visitante', playerOptions);
+
+        if (state.currentUser) {
+            setupHomePlayerSelect.value = String(state.currentUser.id);
+        }
+        updateSetupPlayerStored();
+    }
+
+    // Actualiza los valores previos guardados de los jugadores en el paso inicial
+    function updateSetupPlayerStored() {
+        state.setupHomePlayer = setupHomePlayerSelect ? setupHomePlayerSelect.value : '';
+        state.setupAwayPlayer = setupAwayPlayerSelect ? setupAwayPlayerSelect.value : '';
+    }
+
+    // Actualiza los valores previos guardados de los jugadores en el paso de revisión
+    function updateReviewPlayerStored() {
+        state.reviewHomePlayer = homePlayerSelect ? homePlayerSelect.value : '';
+        state.reviewAwayPlayer = awayPlayerSelect ? awayPlayerSelect.value : '';
+    }
+
+    // Invierte los jugadores si se selecciona en un lado el que ya estaba en el otro
+    function handlePlayerSelectChange(changedSelect, otherSelect, getPrevChanged, updateStoredCallback, onInvertCallback) {
+        const newValue = changedSelect.value;
+        const otherValue = otherSelect.value;
+
+        if (newValue && newValue === otherValue) {
+            const previousValueOfChanged = getPrevChanged();
+            otherSelect.value = (previousValueOfChanged && previousValueOfChanged !== newValue)
+                ? previousValueOfChanged
+                : '';
+        }
+
+        updateStoredCallback();
+        if (onInvertCallback) {
+            onInvertCallback();
+        }
+    }
+
+    function handleSetupHomePlayerChange() {
+        handlePlayerSelectChange(
+            setupHomePlayerSelect,
+            setupAwayPlayerSelect,
+            () => state.setupHomePlayer,
+            updateSetupPlayerStored,
+            () => {
+                if (homePlayerSelect) homePlayerSelect.value = setupHomePlayerSelect.value;
+                if (awayPlayerSelect) awayPlayerSelect.value = setupAwayPlayerSelect.value;
+                updateReviewPlayerStored();
+            }
+        );
+    }
+
+    function handleSetupAwayPlayerChange() {
+        handlePlayerSelectChange(
+            setupAwayPlayerSelect,
+            setupHomePlayerSelect,
+            () => state.setupAwayPlayer,
+            updateSetupPlayerStored,
+            () => {
+                if (homePlayerSelect) homePlayerSelect.value = setupHomePlayerSelect.value;
+                if (awayPlayerSelect) awayPlayerSelect.value = setupAwayPlayerSelect.value;
+                updateReviewPlayerStored();
+            }
+        );
+    }
+
+    function handleReviewHomePlayerChange() {
+        handlePlayerSelectChange(
+            homePlayerSelect,
+            awayPlayerSelect,
+            () => state.reviewHomePlayer,
+            updateReviewPlayerStored,
+            () => {
+                if (setupHomePlayerSelect) setupHomePlayerSelect.value = homePlayerSelect.value;
+                if (setupAwayPlayerSelect) setupAwayPlayerSelect.value = awayPlayerSelect.value;
+                updateSetupPlayerStored();
+            }
+        );
+        clearFieldFlags({ target: homePlayerSelect });
+    }
+
+    function handleReviewAwayPlayerChange() {
+        handlePlayerSelectChange(
+            awayPlayerSelect,
+            homePlayerSelect,
+            () => state.reviewAwayPlayer,
+            updateReviewPlayerStored,
+            () => {
+                if (setupHomePlayerSelect) setupHomePlayerSelect.value = homePlayerSelect.value;
+                if (setupAwayPlayerSelect) setupAwayPlayerSelect.value = awayPlayerSelect.value;
+                updateSetupPlayerStored();
+            }
+        );
+        clearFieldFlags({ target: awayPlayerSelect });
+    }
+
+    // Inicializa el paso 1 cargando los datos necesarios y rellenando los desplegables.
+    async function initSetupStep() {
+        setSetupError('');
+
+        if (state.currentUser && state.games.length > 0) {
+            fillSetupFields();
+            showStep('setup');
+            return;
+        }
+
+        showSetupLoading();
+        try {
+            await ensureReferenceData();
+            fillSetupFields();
+            showStep('setup');
+        } catch (error) {
+            console.error('Error al cargar datos de referencia:', error);
+            showSetupError(getErrorMessage(error, 'No se pudieron cargar los juegos o amigos. Inténtalo de nuevo.'));
+        }
+    }
+
+    // Valida que el juego y los dos jugadores estén seleccionados y no sean la misma cuenta de usuario.
+    function validateSetup() {
+        const gameId = setupGameSelect.value;
+        const homeVal = setupHomePlayerSelect.value;
+        const awayVal = setupAwayPlayerSelect.value;
+
+        if (!gameId) {
+            return 'Debes seleccionar el juego antes de continuar.';
+        }
+        if (!homeVal) {
+            return 'Debes seleccionar el jugador local antes de continuar.';
+        }
+        if (!awayVal) {
+            return 'Debes seleccionar el jugador visitante antes de continuar.';
+        }
+        if (homeVal !== GUEST_VALUE && homeVal === awayVal) {
+            return 'El jugador local y visitante no pueden ser el mismo usuario.';
+        }
+        return '';
+    }
+
+    // Permite acceder al formulario de registro directamente sin usar la IA (carga manual).
+    async function handleSetupManual() {
+        setSetupError('');
+        const error = validateSetup();
+        if (error) {
+            setSetupError(error);
+            return;
+        }
+
+        saveLastGameId(setupGameSelect.value);
+        state.analysis = null;
+        fillReviewFields();
+
+        showTeamsLoading();
+        try {
+            await fillTeamSelects();
+            showStep('review');
+        } catch (error) {
+            console.error('Error al cargar equipos:', error);
+            showStep('setup');
+            setSetupError('No se pudieron cargar los equipos. Inténtalo de nuevo.');
+        }
+    }
+
+    // Valida la selección del juego y de los jugadores en el paso inicial antes de avanzar a la subida de foto.
+    function handleSetupSubmit(event) {
+        event.preventDefault();
+        setSetupError('');
+
+        const error = validateSetup();
+        if (error) {
+            setSetupError(error);
+            return;
+        }
+
+        saveLastGameId(setupGameSelect.value);
+        showStep('upload');
+    }
+
+    // Envía la imagen al servidor pasando el ID del juego requerido para el análisis, rellena campos y pasa a la revisión.
     async function analyzePhoto() {
         if (!state.photoFile) {
+            return;
+        }
+
+        const selectedGameId = setupGameSelect.value || gameSelect.value;
+        const homeVal = setupHomePlayerSelect.value || homePlayerSelect.value;
+        const awayVal = setupAwayPlayerSelect.value || awayPlayerSelect.value;
+
+        if (!selectedGameId || !homeVal || !awayVal) {
+            showStep('setup');
+            setSetupError('No se puede analizar la foto sin antes haber seleccionado el juego y los jugadores.');
             return;
         }
 
@@ -241,10 +526,7 @@
         showStep('loading');
 
         try {
-            const [analysis] = await Promise.all([
-                api.analysis.analyzePhoto(state.photoFile),
-                loadReferenceData()
-            ]);
+            const analysis = await api.analysis.analyzePhoto(state.photoFile, Number(selectedGameId));
 
             if (requestId !== state.analysisRequestId) {
                 return;
@@ -300,6 +582,7 @@
 
     // Llena un menú desplegable <select> con un texto comodín predeterminado y la lista de opciones recibida.
     function fillSelect(select, placeholder, options) {
+        if (!select) return;
         select.replaceChildren(
             new Option(placeholder, ''),
             ...options.map(({ value, label }) => new Option(label, value))
@@ -309,6 +592,7 @@
 
     // Rellena un menú desplegable <select> agrupando los equipos por ligas utilizando etiquetas <optgroup>.
     function fillGroupedSelect(select, placeholder, groups) {
+        if (!select) return;
         const optionGroups = groups.map((group) => {
             const optgroup = document.createElement('optgroup');
             optgroup.label = group.leagueName;
@@ -320,12 +604,58 @@
         select.disabled = false;
     }
 
-    // Deshabilita los selectores de equipos local y visitante mostrando un mensaje temporal (por ejemplo "Cargando...").
+    // Llena el selector de ligas con la opción de todas y cada liga disponible.
+    function populateLeagueSelect(select, groups) {
+        if (!select) return;
+        select.replaceChildren(
+            new Option('Todas las ligas', ''),
+            ...groups.map((group) => new Option(group.leagueName, String(group.leagueId ?? group.leagueName)))
+        );
+        select.disabled = false;
+    }
+
+    // Llena el selector de equipos, ya sea filtrado por una liga concreta o agrupando todas.
+    function populateTeamSelect(select, groups, selectedLeagueKey, placeholder) {
+        if (!select) return;
+
+        if (!selectedLeagueKey) {
+            fillGroupedSelect(select, placeholder, groups);
+            return;
+        }
+
+        const group = groups.find((g) => String(g.leagueId ?? g.leagueName) === String(selectedLeagueKey));
+        if (!group) {
+            fillGroupedSelect(select, placeholder, groups);
+            return;
+        }
+
+        select.replaceChildren(
+            new Option(placeholder, ''),
+            ...group.teams.map((team) => new Option(team.name, team.id))
+        );
+        select.disabled = false;
+    }
+
+    // Busca a qué liga pertenece un equipo dado su ID numérico.
+    function findLeagueOfTeam(teamId, groups) {
+        if (!teamId) return null;
+        return groups.find((g) => g.teams.some((t) => String(t.id) === String(teamId))) || null;
+    }
+
+    // Deshabilita los selectores de equipos y ligas mostrando un mensaje temporal (por ejemplo "Cargando...").
     function disableTeamSelects(message) {
+        [homeLeagueSelect, awayLeagueSelect].forEach((select) => {
+            if (select) {
+                select.replaceChildren(new Option(message, ''));
+                select.disabled = true;
+            }
+        });
         [homeTeamSelect, awayTeamSelect].forEach((select) => {
-            select.replaceChildren(new Option(message, ''));
-            select.disabled = true;
-            select.classList.remove('needs-attention');
+            if (select) {
+                select.replaceChildren(new Option(message, ''));
+                select.disabled = true;
+                select.classList.remove('needs-attention');
+            }
         });
     }
 
@@ -334,7 +664,7 @@
         return state.teamGroups.flatMap((group) => group.teams);
     }
 
-    // Intenta emparejar el nombre del equipo detectado en la foto con la lista oficial del juego, buscando primero coincidencias exactas y luego parciales.
+    // Intenta emparejar el nombre del equipo detectado en la foto con la lista oficial del juego.
     function findTeam(detectedName, teams) {
         const wanted = normalizeName(detectedName);
         if (!wanted) {
@@ -353,13 +683,7 @@
         return partialMatches.length === 1 ? partialMatches[0] : null;
     }
 
-    // Selecciona automáticamente en el <select> el ID del equipo que fue detectado en la foto.
-    function selectDetectedTeam(select, detectedName, teams) {
-        const team = findTeam(detectedName, teams);
-        select.value = team ? String(team.id) : '';
-    }
-
-    // Comprueba si los equipos detectados fueron asignados con éxito. Si falta alguno, resalta el campo y genera un aviso de advertencia para el usuario.
+    // Comprueba si los equipos detectados fueron asignados con éxito.
     function refreshTeamWarnings() {
         if (state.teamsFailed) {
             reviewNotice.hidden = false;
@@ -367,6 +691,12 @@
             return;
         }
 
+        if (!state.analysis) {
+            reviewNotice.hidden = true;
+            return;
+        }
+
+        const teams = getAllTeams();
         const teamChecks = [
             { select: homeTeamSelect, side: 'local', detectedName: state.analysis.home_team },
             { select: awayTeamSelect, side: 'visitante', detectedName: state.analysis.away_team }
@@ -375,9 +705,13 @@
 
         teamChecks.forEach(({ select, side, detectedName }) => {
             const isMissing = select.value === '';
-            select.classList.toggle('needs-attention', isMissing);
-            if (isMissing) {
+            const matchExists = detectedName ? Boolean(findTeam(detectedName, teams)) : false;
+
+            if (isMissing && detectedName && !matchExists) {
+                select.classList.add('needs-attention');
                 messages.push(`No encontré al equipo ${side} (“${detectedName}”) en este juego.`);
+            } else if (!isMissing) {
+                select.classList.remove('needs-attention');
             }
         });
 
@@ -387,16 +721,16 @@
             : '';
     }
 
-    // Pide a la API la lista de equipos agrupados del juego seleccionado, los inserta en los selectores y auto-selecciona los equipos leídos de la foto.
+    // Pide a la API la lista de equipos agrupados del juego seleccionado, los inserta en los selectores y auto-selecciona los equipos leídos de la foto si la IA fue usada.
     async function fillTeamSelects() {
         state.teamsRequestId += 1;
         const requestId = state.teamsRequestId;
-        const gameId = gameSelect.value;
+        const gameId = gameSelect.value || setupGameSelect.value;
 
         state.teamGroups = [];
         state.teamsFailed = false;
 
-        if (gameId === '') {
+        if (!gameId) {
             disableTeamSelects('Elige primero el juego');
             refreshTeamWarnings();
             return;
@@ -412,12 +746,37 @@
             }
 
             state.teamGroups = groups;
-            fillGroupedSelect(homeTeamSelect, 'Elige el equipo local', groups);
-            fillGroupedSelect(awayTeamSelect, 'Elige el equipo visitante', groups);
+            populateLeagueSelect(homeLeagueSelect, groups);
+            populateLeagueSelect(awayLeagueSelect, groups);
 
-            const teams = getAllTeams();
-            selectDetectedTeam(homeTeamSelect, state.analysis.home_team, teams);
-            selectDetectedTeam(awayTeamSelect, state.analysis.away_team, teams);
+            populateTeamSelect(homeTeamSelect, groups, '', 'Elige el equipo local');
+            populateTeamSelect(awayTeamSelect, groups, '', 'Elige el equipo visitante');
+
+            if (state.analysis) {
+                const teams = getAllTeams();
+                const homeMatch = findTeam(state.analysis.home_team, teams);
+                const awayMatch = findTeam(state.analysis.away_team, teams);
+
+                if (homeMatch) {
+                    const league = findLeagueOfTeam(homeMatch.id, groups);
+                    if (league) {
+                        const leagueKey = String(league.leagueId ?? league.leagueName);
+                        homeLeagueSelect.value = leagueKey;
+                        populateTeamSelect(homeTeamSelect, groups, leagueKey, 'Elige el equipo local');
+                    }
+                    homeTeamSelect.value = String(homeMatch.id);
+                }
+
+                if (awayMatch) {
+                    const league = findLeagueOfTeam(awayMatch.id, groups);
+                    if (league) {
+                        const leagueKey = String(league.leagueId ?? league.leagueName);
+                        awayLeagueSelect.value = leagueKey;
+                        populateTeamSelect(awayTeamSelect, groups, leagueKey, 'Elige el equipo visitante');
+                    }
+                    awayTeamSelect.value = String(awayMatch.id);
+                }
+            }
         } catch (error) {
             console.error('Error al cargar los equipos:', error);
 
@@ -432,9 +791,77 @@
         refreshTeamWarnings();
     }
 
-    // Evento ejecutado al cambiar el juego: guarda la elección en localStorage y vuelve a cargar los equipos asociados correspondientes a ese juego.
+    // Evento ejecutado al cambiar la liga del local: filtra los equipos del local a esa liga
+    function handleHomeLeagueChange() {
+        const prevTeam = homeTeamSelect.value;
+        const leagueKey = homeLeagueSelect.value;
+        populateTeamSelect(homeTeamSelect, state.teamGroups, leagueKey, 'Elige el equipo local');
+
+        const allTeamsInLeague = leagueKey
+            ? (state.teamGroups.find((g) => String(g.leagueId ?? g.leagueName) === String(leagueKey))?.teams || [])
+            : getAllTeams();
+
+        if (allTeamsInLeague.some((t) => String(t.id) === String(prevTeam))) {
+            homeTeamSelect.value = prevTeam;
+        } else {
+            homeTeamSelect.value = '';
+        }
+        refreshTeamWarnings();
+    }
+
+    // Evento ejecutado al cambiar la liga del visitante: filtra los equipos del visitante a esa liga
+    function handleAwayLeagueChange() {
+        const prevTeam = awayTeamSelect.value;
+        const leagueKey = awayLeagueSelect.value;
+        populateTeamSelect(awayTeamSelect, state.teamGroups, leagueKey, 'Elige el equipo visitante');
+
+        const allTeamsInLeague = leagueKey
+            ? (state.teamGroups.find((g) => String(g.leagueId ?? g.leagueName) === String(leagueKey))?.teams || [])
+            : getAllTeams();
+
+        if (allTeamsInLeague.some((t) => String(t.id) === String(prevTeam))) {
+            awayTeamSelect.value = prevTeam;
+        } else {
+            awayTeamSelect.value = '';
+        }
+        refreshTeamWarnings();
+    }
+
+    // Sincroniza la liga seleccionada si el usuario elige un equipo desde "Todas las ligas"
+    function handleHomeTeamChange() {
+        if (homeTeamSelect.value && !homeLeagueSelect.value) {
+            const league = findLeagueOfTeam(homeTeamSelect.value, state.teamGroups);
+            if (league) {
+                const leagueKey = String(league.leagueId ?? league.leagueName);
+                const currentTeam = homeTeamSelect.value;
+                homeLeagueSelect.value = leagueKey;
+                populateTeamSelect(homeTeamSelect, state.teamGroups, leagueKey, 'Elige el equipo local');
+                homeTeamSelect.value = currentTeam;
+            }
+        }
+        refreshTeamWarnings();
+    }
+
+    function handleAwayTeamChange() {
+        if (awayTeamSelect.value && !awayLeagueSelect.value) {
+            const league = findLeagueOfTeam(awayTeamSelect.value, state.teamGroups);
+            if (league) {
+                const leagueKey = String(league.leagueId ?? league.leagueName);
+                const currentTeam = awayTeamSelect.value;
+                awayLeagueSelect.value = leagueKey;
+                populateTeamSelect(awayTeamSelect, state.teamGroups, leagueKey, 'Elige el equipo visitante');
+                awayTeamSelect.value = currentTeam;
+            }
+        }
+        refreshTeamWarnings();
+    }
+
+    // Evento ejecutado al cambiar el juego: guarda la elección en localStorage, sincroniza el selector previo y vuelve a cargar los equipos.
     function handleGameChange() {
         saveLastGameId(gameSelect.value);
+        if (setupGameSelect) {
+            setupGameSelect.value = gameSelect.value;
+        }
         fillTeamSelects();
     }
 
@@ -498,26 +925,34 @@
         return state.games.length > 0 ? String(state.games[0].id) : '';
     }
 
-    // Rellena los selectores de juegos y rivales (incluyendo la opción de invitado), marca al usuario como local por defecto y asigna los goles y estadísticas leídos de la foto.
+    // Rellena los selectores de juego y jugadores en la pantalla de revisión, sincronizados con lo elegido en el paso 1.
     function fillReviewFields() {
         const fields = reviewForm.elements;
-        const guestOption = { value: GUEST_VALUE, label: 'Invitado (sin cuenta)' };
-        const friendOptions = state.friends.map((friend) => ({ value: friend.id, label: friend.nickname }));
 
         fillSelect(gameSelect, 'Elige el juego', state.games.map((game) => ({
-            value: game.id,
-            label: `${game.name} (${game.release_year})`
+            value: String(game.id),
+            label: `${game.name}`
         })));
-        gameSelect.value = getInitialGameId();
+        gameSelect.value = setupGameSelect.value || getInitialGameId();
 
-        fillSelect(rivalSelect, 'Elige a tu rival', [...friendOptions, guestOption]);
+        const playerOptions = buildPlayerOptions();
+        fillSelect(homePlayerSelect, 'Elige jugador local', playerOptions);
+        fillSelect(awayPlayerSelect, 'Elige jugador visitante', playerOptions);
 
-        reviewForm.querySelector('input[name="my_side"][value="home"]').checked = true;
+        homePlayerSelect.value = setupHomePlayerSelect.value;
+        awayPlayerSelect.value = setupAwayPlayerSelect.value;
+        updateReviewPlayerStored();
 
-        setCountField(fields.home_goals, state.analysis.home_goals);
-        setCountField(fields.away_goals, state.analysis.away_goals);
+        if (state.analysis) {
+            setCountField(fields.home_goals, state.analysis.home_goals);
+            setCountField(fields.away_goals, state.analysis.away_goals);
+            renderStats(state.analysis.stats || {});
+        } else {
+            fields.home_goals.value = '';
+            fields.away_goals.value = '';
+            renderStats({});
+        }
 
-        renderStats(state.analysis.stats || {});
         clearErrors();
     }
 
@@ -527,12 +962,11 @@
         return raw === '' ? null : Number(raw);
     }
 
-    // Recolecta todos los datos ingresados en el formulario y los estructura exactamente en el formato JSON que exige la API del servidor para guardar un partido.
+    // Recolecta todos los datos ingresados en el formulario y los estructura para la API del servidor.
     function collectMatchData() {
         const fields = reviewForm.elements;
-        const playedAsHome = reviewForm.querySelector('input[name="my_side"]:checked').value === 'home';
-        const myId = state.currentUser.id;
-        const rivalId = fields.rival_id.value === GUEST_VALUE ? null : toId(fields.rival_id.value);
+        const homeVal = fields.home_player_id.value;
+        const awayVal = fields.away_player_id.value;
         const stats = {};
 
         MATCH_STATS.forEach(({ key }) => {
@@ -541,8 +975,8 @@
         });
 
         return {
-            home_user_id: playedAsHome ? myId : rivalId,
-            away_user_id: playedAsHome ? rivalId : myId,
+            home_user_id: homeVal === GUEST_VALUE ? null : toId(homeVal),
+            away_user_id: awayVal === GUEST_VALUE ? null : toId(awayVal),
             home_team_game_id: toId(fields.home_team_game_id.value),
             away_team_game_id: toId(fields.away_team_game_id.value),
             home_goals: readNumber('home_goals'),
@@ -551,7 +985,7 @@
         };
     }
 
-    // Ejecuta las reglas de validación de negocio (campos vacíos, números válidos, que la posesión sume 100% y que los tiros a puerta no superen los tiros totales) acumulando los errores encontrados.
+    // Ejecuta las reglas de validación de negocio.
     function validateMatchData(data) {
         const fields = reviewForm.elements;
         const errors = [];
@@ -560,8 +994,16 @@
         if (fields.game_id.value === '') {
             addError(['game_id'], 'Elige el juego.');
         }
-        if (fields.rival_id.value === '') {
-            addError(['rival_id'], 'Elige a tu rival.');
+        if (fields.home_player_id.value === '') {
+            addError(['home_player_id'], 'Elige el jugador local.');
+        }
+        if (fields.away_player_id.value === '') {
+            addError(['away_player_id'], 'Elige el jugador visitante.');
+        }
+        if (fields.home_player_id.value !== '' &&
+            fields.home_player_id.value !== GUEST_VALUE &&
+            fields.home_player_id.value === fields.away_player_id.value) {
+            addError(['home_player_id', 'away_player_id'], 'El jugador local y visitante no pueden ser el mismo usuario.');
         }
         if (data.home_team_game_id === null) {
             addError(['home_team_game_id'], 'Elige el equipo local.');
@@ -575,15 +1017,22 @@
             addError(invalidGoalFields, 'Los goles deben ser números enteros de 0 o más.');
         }
 
-        const invalidStatFields = Object.keys(data.stats).filter((name) => !isCount(data.stats[name]));
+        const invalidStatFields = Object.keys(data.stats).filter((name) => {
+            const val = data.stats[name];
+            return val !== null && !isCount(val);
+        });
         if (invalidStatFields.length > 0) {
-            addError(invalidStatFields, 'Completa todas las estadísticas con números enteros de 0 o más.');
+            addError(invalidStatFields, 'Las estadísticas deben ser números enteros de 0 o más.');
         }
 
         const homePossession = data.stats.home_possession;
         const awayPossession = data.stats.away_possession;
-        if (isCount(homePossession) && isCount(awayPossession) && homePossession + awayPossession !== 100) {
-            addError(['home_possession', 'away_possession'], 'La posesión de ambos equipos debe sumar 100.');
+        if (homePossession !== null || awayPossession !== null) {
+            if (!isCount(homePossession) || !isCount(awayPossession)) {
+                addError(['home_possession', 'away_possession'], 'Si indicas la posesión, debes completar ambos equipos.');
+            } else if (homePossession + awayPossession !== 100) {
+                addError(['home_possession', 'away_possession'], 'La posesión de ambos equipos debe sumar 100.');
+            }
         }
 
         [['home', 'del local'], ['away', 'del visitante']].forEach(([side, sideLabel]) => {
@@ -609,7 +1058,11 @@
         clearErrors();
 
         errors.forEach(({ fieldNames, message }) => {
-            fieldNames.forEach((name) => reviewForm.elements[name].classList.add('is-invalid'));
+            fieldNames.forEach((name) => {
+                if (reviewForm.elements[name]) {
+                    reviewForm.elements[name].classList.add('is-invalid');
+                }
+            });
 
             const item = document.createElement('li');
             item.textContent = message;
@@ -640,10 +1093,22 @@
 
     // Genera una nota informativa si el rival es un usuario registrado avisando que debe confirmar la solicitud.
     function buildSuccessNote() {
-        if (rivalSelect.value === GUEST_VALUE) {
+        const fields = reviewForm.elements;
+        const myId = state.currentUser ? String(state.currentUser.id) : null;
+        const homeVal = fields.home_player_id.value;
+        const awayVal = fields.away_player_id.value;
+
+        let rivalOption = null;
+        if (homeVal !== myId && homeVal !== GUEST_VALUE && homeVal !== '') {
+            rivalOption = fields.home_player_id;
+        } else if (awayVal !== myId && awayVal !== GUEST_VALUE && awayVal !== '') {
+            rivalOption = fields.away_player_id;
+        }
+
+        if (!rivalOption || !rivalOption.selectedOptions || !rivalOption.selectedOptions[0]) {
             return '';
         }
-        const rivalName = rivalSelect.selectedOptions[0].text;
+        const rivalName = rivalOption.selectedOptions[0].text;
         return `Le avisamos a ${rivalName}. El partido queda registrado cuando lo confirme.`;
     }
 
@@ -731,7 +1196,33 @@
     }
 
     // Escucha el clic para abrir el registro de partidos y resetea el formulario al estado inicial.
-    openRegisterLink.addEventListener('click', resetFlow);
+    openRegisterLinks.forEach((link) => {
+        link.addEventListener('click', resetFlow);
+    });
+
+    // Escuchadores de eventos para la sección inicial (setup)
+    if (setupForm) {
+        setupForm.addEventListener('submit', handleSetupSubmit);
+        setupForm.addEventListener('input', () => setSetupError(''));
+    }
+    if (setupManualButton) {
+        setupManualButton.addEventListener('click', handleSetupManual);
+    }
+    if (setupGameSelect) {
+        setupGameSelect.addEventListener('change', () => saveLastGameId(setupGameSelect.value));
+    }
+    if (setupHomePlayerSelect) {
+        setupHomePlayerSelect.addEventListener('change', handleSetupHomePlayerChange);
+    }
+    if (setupAwayPlayerSelect) {
+        setupAwayPlayerSelect.addEventListener('change', handleSetupAwayPlayerChange);
+    }
+    if (setupRetryButton) {
+        setupRetryButton.addEventListener('click', initSetupStep);
+    }
+    if (backToSetupButton) {
+        backToSetupButton.addEventListener('click', () => showStep('setup'));
+    }
 
     // Asigna todos los eventos de interacción (clics, teclas, arrastre de archivos y clic en analizar) a la zona de carga de la imagen.
     dropzone.addEventListener('click', openPhotoPicker);
@@ -743,10 +1234,22 @@
     photoInput.addEventListener('change', handlePhotoInputChange);
     analyzeButton.addEventListener('click', analyzePhoto);
 
-    // Registra los escuchadores de eventos para los selectores de juegos, equipos, la limpieza de errores al modificar inputs, la navegación hacia atrás y el envío final del formulario.
+    // Registra los escuchadores de eventos para los selectores de juegos, ligas, equipos, inputs y envío del formulario.
     gameSelect.addEventListener('change', handleGameChange);
-    homeTeamSelect.addEventListener('change', refreshTeamWarnings);
-    awayTeamSelect.addEventListener('change', refreshTeamWarnings);
+    if (homePlayerSelect) {
+        homePlayerSelect.addEventListener('change', handleReviewHomePlayerChange);
+    }
+    if (awayPlayerSelect) {
+        awayPlayerSelect.addEventListener('change', handleReviewAwayPlayerChange);
+    }
+    if (homeLeagueSelect) {
+        homeLeagueSelect.addEventListener('change', handleHomeLeagueChange);
+    }
+    if (awayLeagueSelect) {
+        awayLeagueSelect.addEventListener('change', handleAwayLeagueChange);
+    }
+    homeTeamSelect.addEventListener('change', handleHomeTeamChange);
+    awayTeamSelect.addEventListener('change', handleAwayTeamChange);
     reviewForm.addEventListener('input', clearFieldFlags);
     reviewForm.addEventListener('submit', handleReviewSubmit);
     backToUploadButton.addEventListener('click', () => showStep('upload'));

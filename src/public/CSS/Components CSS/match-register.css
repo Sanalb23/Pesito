@@ -186,6 +186,16 @@
     }
 }
 
+.mr-error-icon {
+    font-size: 72px;
+    color: var(--mr-danger);
+}
+
+.mr-card-center p {
+    color: var(--mr-muted);
+    line-height: 1.4;
+}
+
 
 /* CAMPOS DE FORMULARIO */
 .match-register-menu input[type="number"],
@@ -245,7 +255,27 @@
 }
 
 
-/* PASO 3: REVISION */
+/* PASO 1: SELECCION DE JUEGO Y JUGADORES */
+#setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.mr-setup-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.mr-players-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+
+/* PASO 4: REVISION */
 #review-form {
     display: flex;
     flex-direction: column;
@@ -327,7 +357,7 @@
 .mr-scoreboard {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
-    align-items: end;
+    align-items: center;
     gap: 16px;
     padding: 20px;
     background-color: var(--mr-card-light);
@@ -339,6 +369,11 @@
     flex-direction: column;
     gap: 8px;
     min-width: 0;
+}
+
+.mr-side select:first-of-type {
+    font-size: 13px;
+    color: rgb(200, 200, 200);
 }
 
 .mr-score {
@@ -462,6 +497,10 @@
 
 @media (max-width: 700px) {
     .mr-meta {
+        grid-template-columns: 1fr;
+    }
+
+    .mr-players-grid {
         grid-template-columns: 1fr;
     }
 }

@@ -73,9 +73,68 @@
                     <button type="button" class="menu-buttons back-button" id="back-to-menu"><i
                             class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
-                    <!-- PASO 1: INSTRUCTIVO Y SUBIDA DE LA FOTO -->
-                    <section class="mr-card" id="step-upload">
+                    <!-- CARGANDO DATOS INICIALES -->
+                    <section class="mr-card mr-card-center" id="mr-setup-loading" role="status" aria-live="polite" hidden>
+                        <div class="mr-spinner"></div>
+                        <h2>Cargando <span>juegos y jugadores</span></h2>
+                        <p>Estamos trayendo los juegos y tu lista de amigos...</p>
+                    </section>
+
+                    <!-- ERROR AL CARGAR DATOS INICIALES -->
+                    <section class="mr-card mr-card-center" id="mr-setup-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle mr-error-icon"></i>
+                        <h2>No se pudieron <span>cargar</span></h2>
+                        <p id="mr-setup-error-message">Hubo un problema al cargar los juegos y amigos. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="mr-setup-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- PASO 1: SELECCION DE JUEGO Y JUGADORES -->
+                    <section class="mr-card" id="step-setup" hidden>
                         <h2>Registrar <span>partido</span></h2>
+                        <p class="mr-hint">Selecciona el juego y los jugadores para comenzar.</p>
+
+                        <form id="setup-form" novalidate>
+                            <div class="mr-setup-fields">
+                                <label class="mr-field">
+                                    <span>Juego</span>
+                                    <select name="setup_game_id" id="setup-game-select" required>
+                                        <option value="">Cargando juegos...</option>
+                                    </select>
+                                </label>
+
+                                <div class="mr-players-grid">
+                                    <label class="mr-field">
+                                        <span>Jugador local</span>
+                                        <select name="setup_home_player_id" id="setup-home-player-select" required>
+                                            <option value="">Cargando jugadores...</option>
+                                        </select>
+                                    </label>
+
+                                    <label class="mr-field">
+                                        <span>Jugador visitante</span>
+                                        <select name="setup_away_player_id" id="setup-away-player-select" required>
+                                            <option value="">Cargando jugadores...</option>
+                                        </select>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <p class="mr-error" id="setup-error" role="alert" hidden></p>
+
+                            <div class="mr-actions mr-actions-split">
+                                <button type="button" class="menu-buttons back-button" id="setup-manual-button">
+                                    <i class="ph ph-pencil-simple-line"></i>&nbsp;Cargar manualmente
+                                </button>
+                                <button type="submit" class="analize-button" id="setup-continue-button">
+                                    <i class="ph ph-camera"></i>&nbsp;Cargar con foto (IA)
+                                </button>
+                            </div>
+                        </form>
+                    </section>
+
+                    <!-- PASO 2: INSTRUCTIVO Y SUBIDA DE LA FOTO -->
+                    <section class="mr-card" id="step-upload" hidden>
+                        <h2>Subir <span>foto</span></h2>
 
                         <ol class="mr-instructions">
                             <li>
@@ -105,24 +164,33 @@
 
                         <p class="mr-error" id="upload-error" role="alert" hidden></p>
 
-                        <div class="mr-actions">
+                        <div class="mr-actions mr-actions-split">
+                            <button type="button" class="menu-buttons back-button" id="back-to-setup"><i
+                                    class="ph ph-arrow-left"></i>&nbsp;Cambiar datos</button>
                             <button type="button" class="analize-button" id="analyze-button" disabled>Analizar
                                 resultados</button>
                         </div>
                     </section>
 
-                    <!-- PASO 2: ANALIZANDO -->
+                    <!-- PASO 3: ANALIZANDO -->
                     <section class="mr-card mr-card-center" id="step-loading" role="status" aria-live="polite" hidden>
                         <div class="mr-spinner"></div>
                         <h2>Analizando <span>resultados</span></h2>
                         <p>Estamos leyendo el marcador y las estadísticas de tu foto. Esto toma unos segundos.</p>
                     </section>
 
-                    <!-- PASO 3: REVISION DE LOS RESULTADOS -->
+                    <!-- CARGANDO DATOS / EQUIPOS (CARGA MANUAL) -->
+                    <section class="mr-card mr-card-center" id="mr-teams-loading" role="status" aria-live="polite" hidden>
+                        <div class="mr-spinner"></div>
+                        <h2>Cargando <span>equipos</span></h2>
+                        <p>Estamos preparando los datos y equipos para el partido...</p>
+                    </section>
+
+                    <!-- PASO 4: REVISION DE LOS RESULTADOS -->
                     <section class="mr-card" id="step-review" hidden>
-                        <h2>Revisa los <span>resultados</span></h2>
-                        <p class="mr-hint">Estos son los datos que se leyeron de tu foto. Corrige lo que haga falta
-                            antes de confirmar.</p>
+                        <h2>Datos del <span>partido</span></h2>
+                        <p class="mr-hint">Revisa o completa los datos y estadísticas del partido antes de confirmar.
+                        </p>
 
                         <p class="mr-notice" id="review-notice" hidden></p>
 
@@ -133,29 +201,21 @@
                                     <select name="game_id" id="game-select"></select>
                                 </label>
 
-                                <fieldset class="mr-field">
-                                    <legend>Jugué como</legend>
-                                    <div class="mr-radio-group">
-                                        <label class="mr-radio">
-                                            <input type="radio" name="my_side" value="home" checked>
-                                            <span>Local</span>
-                                        </label>
-                                        <label class="mr-radio">
-                                            <input type="radio" name="my_side" value="away">
-                                            <span>Visitante</span>
-                                        </label>
-                                    </div>
-                                </fieldset>
+                                <label class="mr-field">
+                                    <span>Jugador local</span>
+                                    <select name="home_player_id" id="home-player-select"></select>
+                                </label>
 
                                 <label class="mr-field">
-                                    <span>Rival</span>
-                                    <select name="rival_id" id="rival-select"></select>
+                                    <span>Jugador visitante</span>
+                                    <select name="away_player_id" id="away-player-select"></select>
                                 </label>
                             </div>
 
                             <div class="mr-scoreboard">
                                 <div class="mr-side">
                                     <span class="mr-side-label">Local</span>
+                                    <select id="home-league-select" aria-label="Liga del equipo local"></select>
                                     <select name="home_team_game_id" id="home-team-select"
                                         aria-label="Equipo local"></select>
                                 </div>
@@ -170,6 +230,7 @@
 
                                 <div class="mr-side">
                                     <span class="mr-side-label">Visitante</span>
+                                    <select id="away-league-select" aria-label="Liga del equipo visitante"></select>
                                     <select name="away_team_game_id" id="away-team-select"
                                         aria-label="Equipo visitante"></select>
                                 </div>
@@ -198,7 +259,7 @@
                         </form>
                     </section>
 
-                    <!-- PASO 4: PARTIDO REGISTRADO -->
+                    <!-- PASO 5: PARTIDO REGISTRADO -->
                     <section class="mr-card mr-card-center" id="step-success" hidden>
                         <i class="ph ph-check-circle mr-success-icon"></i>
                         <h2>¡Partido <span>enviado!</span></h2>
@@ -634,16 +695,8 @@
             </div>
         </div>
     </div>
-    <script src="src/public/JS/config.js"></script>
-    <script src="src/public/JS/api/client.js"></script>
-    <script src="src/public/JS/api/demo-server.js"></script>
-    <script src="src/public/JS/api/session.js"></script>
-    <script src="src/public/JS/api/games.js"></script>
-    <script src="src/public/JS/api/friends.js"></script>
-    <script src="src/public/JS/api/matches.js"></script>
-    <script src="src/public/JS/api/analysis.js"></script>
-    <script src="src/public/JS/api/users.js"></script>
     <script src="src/public/JS/menu-transition.js"></script>
+    <script src="src/public/JS/match-api.js"></script>
     <script src="src/public/JS/match-register.js"></script>
     <script src="src/public/JS/user-stats-calc.js"></script>
     <script src="src/public/JS/user-stats.js"></script>
