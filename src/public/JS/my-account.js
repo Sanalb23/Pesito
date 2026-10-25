@@ -88,32 +88,59 @@
             return;
         }
 
-        if (newPassword.length < 6) {
-            alert('La contraseña debe tener al menos 6 caracteres.');
-            return;
-        }
-
         try {
-            await api.users.changePassword({
-                current_password: currentPassword,
-                new_password: newPassword
+            const response = await fetch(`${base_url}/users/me/change-password`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    currentPassword: currentPassword,
+                    newPassword: newPassword
+                }),
+                credentials: 'include'
             });
+
+            const data = await response.json().catch(() => null);
+
+            if (!response.ok) {
+                throw new Error(data?.message || `Error del servidor (${response.status})`);
+            }
+
+
             alert('Contraseña actualizada correctamente.');
             document.querySelector('#ma-password-form').reset();
         } catch (error) {
-            console.error('Error al cambiar contraseña:', error);
-            alert('No se pudo cambiar la contraseña. Verifica que tu contraseña actual sea correcta.');
+            console.error(error);
+            alert(error.message || 'No se pudo cambiar la contraseña.');
         }
     }
 
-    function handleDeleteAccount() {
+    async function handleDeleteAccount() {
         const confirmed = confirm('¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y borrará todos tus datos permanentemente.');
 
         if (confirmed) {
             const doubleConfirmed = confirm('Esta es tu última oportunidad. ¿Realmente quieres eliminar tu cuenta?');
 
             if (doubleConfirmed) {
-                alert('Función de eliminar cuenta pendiente de implementación en el backend.');
+                try {
+                    const response = await fetch(`${base_url}/users/me`, {
+                        method: 'DELETE',
+                        credentials: 'include'
+                    });
+
+                    const data = await response.json().catch(() => null);
+
+                    if (!response.ok) {
+                        throw new Error(data?.message || `Error del servidor (${response.status})`);
+                    }
+
+                    alert('Cuenta eliminada correctamente.');
+                    window.location.href = '/index.html';
+                } catch (error) {
+                    console.error(error);
+                    alert(error.message || 'No se pudo eliminar la cuenta.');
+                }
             }
         }
     }
