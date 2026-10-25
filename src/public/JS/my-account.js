@@ -1,6 +1,5 @@
 (function () {
-
-    const base_url = "https://pesito-ejyz.onrender.com";
+    const api = window.pesitoApi;
 
     const state = {
         userData: null,
@@ -54,13 +53,7 @@
         showLoading();
 
         try {
-            const response = await fetch(`${base_url}/users/me`, {
-                credentials: 'include'
-            });
-            const userData = await response.json();
-            if (!response.ok) {
-                throw new Error(userData?.message || `Error del servidor (${response.status})`);
-            }
+            const userData = await api.session.getCurrentUser();
             state.userData = userData;
             populateAccountData(userData);
             showDashboard();

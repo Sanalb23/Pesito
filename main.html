@@ -664,45 +664,66 @@
             <div class="friends-modal-title">
                 <h2>Mis <span>Amigos</span></h2>
             </div>
-            <form id="friend-search-form" onsubmit="event.preventDefault();">
-                <div class="search-container">
-                    <i class="ph ph-user"></i>
-                    <div class="search-div">
-                        <input type="text" id="friend-search-input" placeholder="Buscar amigo...">
-                        <button type="submit" class="search-friend"><i class="ph ph-magnifying-glass"></i></button>
-                    </div>
-                </div>
-            </form>
-            <hr>
-            <div class="friends-container">
-                <div class="user-profile">
-                    <div class="profile-name-status">
-                        <div class="online-status"></div>
-                        <div class="picture-and-username">
-                            <div class="user-picture">
-                                <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="">
-                            </div>
-                            <p>ITsF4CU</p>
+
+            <!-- Panel de lista de amigos -->
+            <div class="fm-panel-list">
+                <form id="friend-search-form" onsubmit="event.preventDefault();">
+                    <div class="search-container">
+                        <i class="ph ph-user"></i>
+                        <div class="search-div">
+                            <input type="text" id="friend-search-input" placeholder="Buscar amigo...">
+                            <button type="submit" class="search-friend"><i class="ph ph-magnifying-glass"></i></button>
                         </div>
                     </div>
-                    <div class="see-profile">
-                        <button>Ver perfil</button>
-                    </div>
+                </form>
+                <hr>
+                <div class="friends-container"></div>
+                <div class="search-people">
+                    <button id="toggle-search-panel">Buscar jugadores</button>
                 </div>
             </div>
-            <div class="search-people">
-                <button>Buscar jugadores</button>
+
+            <!-- Panel de búsqueda de jugadores -->
+            <div class="fm-panel-invite hidden">
+                <form id="player-search-form" onsubmit="event.preventDefault();">
+                    <div class="search-container">
+                        <i class="ph ph-magnifying-glass"></i>
+                        <div class="search-div">
+                            <input type="text" id="player-search-input" placeholder="Buscar jugador por nickname...">
+                            <button type="submit" class="search-friend"><i class="ph ph-magnifying-glass"></i></button>
+                        </div>
+                    </div>
+                </form>
+                <hr>
+                <div class="fm-results"></div>
+                <div class="search-people">
+                    <button id="toggle-list-panel">Ver mis amigos</button>
+                </div>
             </div>
         </div>
     </div>
+    <script src="src/public/JS/config.js"></script>
+    <script src="src/public/JS/api/client.js"></script>
+    <script src="src/public/JS/api/demo-server.js"></script>
+    <script src="src/public/JS/api/session.js"></script>
+    <script src="src/public/JS/api/games.js"></script>
+    <script src="src/public/JS/api/friends.js"></script>
+    <script src="src/public/JS/api/matches.js"></script>
+    <script src="src/public/JS/api/analysis.js"></script>
+    <script src="src/public/JS/api/users.js"></script>
     <script src="src/public/JS/menu-transition.js"></script>
-    <script src="src/public/JS/match-api.js"></script>
     <script src="src/public/JS/match-register.js"></script>
     <script src="src/public/JS/user-stats-calc.js"></script>
     <script src="src/public/JS/user-stats.js"></script>
     <script src="src/public/JS/stats.js"></script>
     <script src="src/public/JS/my-account.js"></script>
     <script src="src/public/JS/my-matches.js"></script>
+    <script src="src/public/JS/notifications.js"></script>
+    <script src="src/public/JS/soundtrack.js"></script>
+    <script src="src/public/JS/transition.js"></script>
+    <script src="src/public/JS/user-profile.js"></script>
+    <script src="src/public/JS/user-stats.js"></script>
+    <script src="src/public/JS/user-stats-calc.js"></script>
 </body>
 
 </html>
