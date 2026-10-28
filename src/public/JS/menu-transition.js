@@ -11,7 +11,7 @@ const myAccountMenu = document.querySelector('.my-account-menu');
 const myAccountContent = document.querySelector('.my-account-content');
 const myMatchesMenu = document.querySelector('.my-matches-menu');
 const myMatchesContent = document.querySelector('.my-matches-content');
-const friendsBackdrop = document.querySelector('.modal-backdrop');
+const friendsBackdrop = document.getElementById('friends-backdrop') || document.querySelector('.modal-backdrop');
 
 const openMatchRegisterButton = document.querySelector('#match-register');
 const backToMenuButton = document.querySelector('#back-to-menu');
@@ -153,5 +153,13 @@ if (openMyAccountButtonMobile) {
     openMyAccountButtonMobile.addEventListener('click', goToMyAccount);
 }
 
-openFriendsButton.addEventListener('click', openFriendsModal);
-closeFriendsButton.addEventListener('click', closeFriendsModal);
+if (openFriendsButton) openFriendsButton.addEventListener('click', openFriendsModal);
+if (closeFriendsButton) closeFriendsButton.addEventListener('click', closeFriendsModal);
+
+if (friendsBackdrop) {
+    friendsBackdrop.addEventListener('click', (e) => {
+        if (e.target === friendsBackdrop) {
+            closeFriendsModal();
+        }
+    });
+}

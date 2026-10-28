@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="src/public/CSS/main.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/buttons.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/friends.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/notifications.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/match-register.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/user-stats.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/my-account.css">
@@ -35,8 +36,14 @@
         <nav class="desktop-nav">
             <a href="" id="my-account" title="Mi cuenta"><i class="ph ph-user-circle"></i></a>
             <a href="" title="Musica"><i class="ph ph-music-note"></i></a>
-            <a href="" title="Notificaciones"><i class="ph ph-bell"></i></a>
+            <a href="" id="open-notifications" title="Notificaciones" class="header-notification-btn"><i
+                    class="ph ph-bell"></i><span class="notification-badge" id="notifications-badge">3</span></a>
         </nav>
+
+        <div class="mobile-header-actions">
+            <a href="" id="open-notifications-mobile" title="Notificaciones" class="mobile-notification-btn"><i
+                    class="ph ph-bell"></i><span class="notification-badge" id="notifications-badge-mobile">3</span></a>
+        </div>
     </header>
 
     <!-- BOTTOM BAR PARA MÓVILES -->
@@ -62,6 +69,7 @@
                     <a href="" id="match-register">Registrar partido</a>
                     <a href="" id="user-stats">Mis estadisticas</a>
                     <a href="" id="user-friends">Mis amigos</a>
+                    <a href="" id="user-notifications">Notificaciones</a>
                     <a href="" id="leagues-and-teams">Equipos y ligas</a>
                     <a href="" id="log-out">Cerrar sesion</a>
                 </div>
@@ -695,6 +703,57 @@
             </div>
         </div>
     </div>
+
+    <!-- MODAL DE NOTIFICACIONES -->
+    <div class="modal-backdrop hidden" id="notifications-backdrop">
+        <div class="notifications-modal">
+            <button type="button" class="menu-buttons back-button" id="close-notifications-modal"><i
+                    class="ph ph-arrow-left"></i>&nbsp;Volver</button>
+            <div class="notifications-modal-header">
+                <div class="notifications-modal-title">
+                    <h2>Mis <span>Notificaciones</span></h2>
+                </div>
+                <button type="button" class="mark-all-read-btn" id="mark-all-read-btn" title="Marcar todas como leídas">
+                    <i class="ph ph-checks"></i>
+                    <span>Leídas</span>
+                </button>
+            </div>
+
+            <!-- BUSCADOR Y FILTROS POR CATEGORÍA -->
+            <div class="notifications-search-and-filters">
+                <form id="notification-search-form" onsubmit="event.preventDefault();">
+                    <div class="search-container">
+                        <i class="ph ph-funnel"></i>
+                        <div class="search-div">
+                            <input type="text" id="notification-search-input" placeholder="Filtrar notificación...">
+                            <button type="button" class="clear-search-btn" id="clear-notification-search" title="Limpiar"><i class="ph ph-x"></i></button>
+                        </div>
+                    </div>
+                </form>
+
+                <div class="notification-tabs">
+                    <button type="button" class="notification-tab active" data-filter="all">Todas</button>
+                    <button type="button" class="notification-tab" data-filter="unread">No leídas <span class="tab-counter" id="unread-count-pill">3</span></button>
+                    <button type="button" class="notification-tab" data-filter="match">Partidos</button>
+                    <button type="button" class="notification-tab" data-filter="friend">Amigos</button>
+                    <button type="button" class="notification-tab" data-filter="system">Sistema</button>
+                </div>
+            </div>
+
+            <hr>
+
+            <div class="notifications-container" id="notifications-container">
+                <!-- Se cargan dinámicamente con JS -->
+            </div>
+
+            <div class="notifications-footer">
+                <button type="button" class="clear-notifications-btn" id="clear-all-notifications">
+                    <i class="ph ph-trash"></i>&nbsp;Limpiar historial
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="src/public/JS/menu-transition.js"></script>
     <script src="src/public/JS/match-api.js"></script>
     <script src="src/public/JS/match-register.js"></script>
@@ -703,6 +762,7 @@
     <script src="src/public/JS/stats.js"></script>
     <script src="src/public/JS/my-account.js"></script>
     <script src="src/public/JS/my-matches.js"></script>
+    <script src="src/public/JS/notifications.js"></script>
 </body>
 
-</html>
+</html>

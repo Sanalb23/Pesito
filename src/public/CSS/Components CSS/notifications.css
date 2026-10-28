@@ -1,0 +1,677 @@
+/* ESTILOS PARA EL PANEL / MODAL DE NOTIFICACIONES */
+
+/* Enlace del nav y badge */
+.header-notification-btn,
+.mobile-notification-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.notification-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background-color: #e63946;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: 'Montserrat', sans-serif;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 4px;
+    box-shadow: 0 0 10px rgba(230, 57, 70, 0.7);
+    line-height: 1;
+    pointer-events: none;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.notification-badge.hidden-badge {
+    opacity: 0;
+    transform: scale(0.5);
+    pointer-events: none;
+}
+
+/* Acciones en el header móvil */
+.mobile-header-actions {
+    display: none;
+    align-items: center;
+}
+
+.mobile-header-actions a {
+    font-size: 26px;
+    color: white;
+    text-decoration: none;
+    padding: 6px 12px;
+    background-color: black;
+    border-radius: 20px;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+}
+
+.mobile-header-actions a:hover {
+    color: yellow;
+    text-shadow: 0 0 15px rgb(255, 255, 0);
+}
+
+/* MODAL DE NOTIFICACIONES (Similar al modal de amigos) */
+.notifications-modal {
+    position: relative;
+    width: 520px;
+    max-width: calc(100vw - 24px);
+    height: 560px;
+    max-height: 82vh;
+    padding: 26px;
+    background-color: rgb(31, 31, 31);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    border-radius: 20px;
+    z-index: 1;
+    box-sizing: border-box;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    animation: modalPopIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalPopIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* HEADER DEL MODAL */
+.notifications-modal-header {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.notifications-modal-title {
+    font-family: 'Montserrat', sans-serif;
+    color: white;
+    margin: 0;
+}
+
+.notifications-modal-title h2 {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
+}
+
+.notifications-modal-title span {
+    color: yellow;
+}
+
+.mark-all-read-btn {
+    background: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    padding: 6px 12px;
+    border-radius: 14px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+}
+
+.mark-all-read-btn:hover {
+    background-color: rgba(255, 255, 0, 0.15);
+    border-color: yellow;
+    color: yellow;
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+/* BUSCADOR Y TABS */
+.notifications-search-and-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+}
+
+.notifications-search-form {
+    width: 100%;
+}
+
+#notification-search-input {
+    width: 90%;
+    height: 32px;
+    background: none;
+    border: none;
+    background-color: rgb(185, 185, 185);
+    padding: 0 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    outline: none;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+    color: #111;
+}
+
+#notification-search-input::placeholder {
+    color: #555;
+}
+
+.clear-search-btn {
+    width: 36px;
+    height: 32px;
+    background: none;
+    border: none;
+    background-color: rgb(150, 150, 150);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+    color: #222;
+    transition: background-color 0.2s ease;
+}
+
+.clear-search-btn:hover {
+    background-color: yellow;
+}
+
+/* TABS DE FILTRO */
+.notification-tabs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+}
+
+.notification-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.notification-tab {
+    background-color: rgb(50, 50, 50);
+    border: none;
+    color: #bbb;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.notification-tab:hover {
+    background-color: rgb(65, 65, 65);
+    color: white;
+}
+
+.notification-tab.active {
+    background-color: yellow;
+    color: black;
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.4);
+}
+
+.tab-counter {
+    background-color: #e63946;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 14px;
+    line-height: 1.2;
+}
+
+.notification-tab.active .tab-counter {
+    background-color: black;
+    color: yellow;
+}
+
+/* CONTENEDOR DE NOTIFICACIONES */
+.notifications-container {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    min-height: 120px;
+}
+
+.notifications-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.notifications-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 0, 0.4);
+    border-radius: 10px;
+}
+
+.notifications-container::-webkit-scrollbar-thumb:hover {
+    background: yellow;
+}
+
+/* CARD INDIVIDUAL DE NOTIFICACIÓN (Similar a .user-profile de amigos) */
+.notification-card {
+    width: 100%;
+    background-color: rgb(55, 55, 53);
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, transform 0.15s ease, border 0.2s ease;
+    border-left: 4px solid transparent;
+    cursor: default;
+}
+
+.notification-card:hover {
+    background-color: rgb(68, 68, 65);
+}
+
+/* Estado no leído */
+.notification-card.unread {
+    background-color: rgb(65, 65, 60);
+    border-left-color: yellow;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Estructura interna de la card */
+.notification-left {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-icon-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgb(40, 40, 40);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+    color: white;
+}
+
+.notification-icon-wrapper.icon-match {
+    background-color: #1a4329;
+    color: #4ade80;
+}
+
+.notification-icon-wrapper.icon-friend {
+    background-color: #1e3a5f;
+    color: #60a5fa;
+}
+
+.notification-icon-wrapper.icon-system {
+    background-color: #5c3b00;
+    color: yellow;
+}
+
+.notification-icon-wrapper.icon-trophy {
+    background-color: #533f03;
+    color: #facc15;
+}
+
+.notification-pulse-dot {
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: yellow;
+    box-shadow: 0 0 8px yellow;
+}
+
+.notification-body {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.notification-body-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.notification-title {
+    color: white;
+    font-weight: 700;
+    font-size: 13.5px;
+    margin: 0;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.notification-text {
+    color: #ccc;
+    font-size: 12.5px;
+    margin: 0;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+/* ACCIONES DE LA NOTIFICACIÓN */
+.notification-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.notif-btn {
+    border: none;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 11.5px;
+    padding: 6px 12px;
+    border-radius: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notif-btn-accept {
+    background-color: yellow;
+    color: black;
+}
+
+.notif-btn-accept:hover {
+    background-color: #ffff33;
+    box-shadow: 0 0 12px yellow;
+}
+
+.notif-btn-reject {
+    background-color: rgb(40, 40, 40);
+    color: #ccc;
+}
+
+.notif-btn-reject:hover {
+    background-color: #7f1d1d;
+    color: white;
+}
+
+.notif-btn-dismiss {
+    background: none;
+    color: #888;
+    padding: 6px;
+    font-size: 16px;
+}
+
+.notif-btn-dismiss:hover {
+    color: #ff5555;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.notif-status-tag {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #bbb;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.notif-status-tag.accepted {
+    background-color: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
+.notif-status-tag.rejected {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+/* WIDGET DE CONFIRMACIÓN DE PARTIDO CARGADO POR RIVAL */
+.match-confirm-preview {
+    margin-top: 8px;
+    background: rgba(18, 18, 18, 0.7);
+    border-radius: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.match-confirm-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    color: #aaa;
+}
+
+.match-rival-badge {
+    color: yellow;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.match-game-tag {
+    background-color: rgba(255, 255, 0, 0.2);
+    color: yellow;
+    font-weight: 800;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 0, 0.3);
+}
+
+.match-teams-score {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.match-team {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #f0f0f0;
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.match-team.team-away {
+    text-align: right;
+}
+
+.match-score-pill {
+    background-color: black;
+    color: yellow;
+    padding: 3px 10px;
+    border-radius: 8px;
+    letter-spacing: 2px;
+    font-size: 13.5px;
+    font-weight: 800;
+    border: 1px solid rgba(255, 255, 0, 0.5);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.2);
+    white-space: nowrap;
+}
+
+.match-confirm-actions {
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+}
+
+.match-confirm-actions .notif-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 10px;
+}
+
+/* ESTADO VACÍO (EMPTY STATE) */
+.notifications-empty {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: #888;
+    font-family: 'Montserrat', sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+.notifications-empty i {
+    font-size: 48px;
+    color: #555;
+}
+
+.notifications-empty h3 {
+    margin: 0;
+    color: #bbb;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.notifications-empty p {
+    margin: 0;
+    font-size: 13px;
+    color: #777;
+    max-width: 280px;
+}
+
+/* FOOTER DEL MODAL */
+.notifications-footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding-top: 4px;
+}
+
+.clear-notifications-btn {
+    background: none;
+    border: none;
+    color: #999;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+}
+
+.clear-notifications-btn:hover {
+    color: #ff5555;
+    background-color: rgba(255, 85, 85, 0.1);
+}
+
+/* RESPONSIVE (Mismo comportamiento que friends.css) */
+@media (max-width: 768px) {
+    .mobile-header-actions {
+        display: flex;
+    }
+
+    .notifications-modal {
+        max-height: calc(100vh - 70px - 24px);
+        margin-bottom: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .notifications-modal {
+        padding: 18px 14px;
+        gap: 12px;
+    }
+
+    .notifications-modal-title h2 {
+        font-size: 1.25rem;
+    }
+
+    #notification-search-input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .notification-card {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 10px 12px;
+    }
+
+    .notification-actions {
+        justify-content: flex-end;
+        width: 100%;
+    }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+    .notifications-modal {
+        height: auto;
+        max-height: calc(100vh - 60px);
+        margin-bottom: 50px;
+        padding: 14px 18px;
+        gap: 8px;
+    }
+
+    .notifications-container {
+        max-height: 180px;
+    }
+}
