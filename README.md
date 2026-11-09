@@ -79,9 +79,9 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
 | **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
-| **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial de partidos del usuario autenticado. |
+| **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial paginado de partidos del usuario autenticado (10 por página). |
 | **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
-| **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial de partidos de un usuario específico. |
+| **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial paginado de partidos de un usuario específico (10 por página). |
 | **User** | `GET` | `/users/:userId/stats` | **Sí** | Obtiene las estadísticas globales y métricas de un usuario específico. |
 | **Game** | `GET` | `/games` | No | Obtiene la lista de todos los juegos registrados. |
 | **Game** | `GET` | `/games/:gameId/leagues` | No | Obtiene las ligas asociadas a un juego. |
@@ -459,7 +459,14 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.7 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Obtiene todos los partidos jugados por el usuario actual (ya sea como local o como visitante), ordenados cronológicamente de forma descendente.
+- **Descripción:** Obtiene los partidos jugados por el usuario actual (ya sea como local o como visitante) de forma paginada (10 por página), ordenados cronológicamente de forma descendente.
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 10 partidos por página. |
+
+**Ejemplo de Petición:** `GET /users/me/matches?page=2`
 
 #### Respuestas:
 - **`200 OK`**: Lista de partidos del usuario en sesión.
@@ -493,14 +500,19 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.8 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta.
+- **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta de forma paginada (10 por página).
 
 #### Parámetros de Ruta (Path Parameters):
 | Parámetro | Tipo | Requerido | Descripción |
 | --- | --- | --- | --- |
 | `userId` | `integer` | Sí | ID numérico positivo del usuario. |
 
-**Ejemplo de Petición:** `GET /users/5/matches`
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 10 partidos por página. |
+
+**Ejemplo de Petición:** `GET /users/5/matches?page=2`
 
 #### Respuestas:
 - **`200 OK`**: Lista de partidos del usuario solicitado.

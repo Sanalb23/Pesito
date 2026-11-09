@@ -54,7 +54,8 @@ const getMatchesByUserId = async (req, res) => {
             return res.status(400).json({ error: "INVALID_USER_ID", message: "Usuario no valido" });
         }
 
-        const matches = await matchModel.getMatchesByUserId(userId);
+        const matches = await matchModel.getMatchesByUserId(userId, req.query.page);
+
         res.status(200).json({ message: "Partidos obtenidos", data: matches });
     } catch (error) {
         res.status(500).json({ error: "GET_MATCHES_ERROR", message: "Error al obtener los partidos" });
@@ -243,8 +244,8 @@ const confirmDelete = async (req, res) => {
 
 const getMyMatches = async (req, res) => {
     try {
-        const userId = req.user.id;
-        const matches = await matchModel.getMatchesByUserId(userId);
+        const userId = parseId(req.user.id);
+        const matches = await matchModel.getMatchesByUserId(userId, req.query.page);
         res.status(200).json({ message: "Partidos obtenidos", data: matches });
     } catch (error) {
         res.status(500).json({ error: "GET_MATCHES_ERROR", message: "Error al obtener los partidos" });
