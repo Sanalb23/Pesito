@@ -209,11 +209,11 @@ const updateAccount = async (req, res) => {
         const { nickname, email } = req.body;
 
         if (!nickname && !email) {
-            return res.status(400).json({ error: "MISSING_FIELDS", message: "Debes enviar al menos un nickname o un email" });
+            return res.status(400).json({ error: "MISSING_FIELDS", message: "Debes enviar al menos un nombre de usuario o un email" });
         }
 
         if (nickname && nickname.includes(' ')) {
-            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nickname no debe contener espacios" });
+            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nombre de usuario no debe contener espacios" });
         }
 
         await updateUserData(userId, { nickname, email });
@@ -228,7 +228,7 @@ const updateAccount = async (req, res) => {
             }
 
             if (error.constraint === 'users_nickname_key') {
-                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nickname ya está en uso" });
+                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nombre de usuario ya está en uso" });
             }
         }
 

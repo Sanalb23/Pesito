@@ -69,13 +69,13 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 | Módulo | Método | Ruta | Autenticación | Descripción |
 | --- | --- | --- | --- | --- |
-| **Auth** | `POST` | `/auth/register` | No | Registra un nuevo usuario validando unicidad de email y nickname. |
+| **Auth** | `POST` | `/auth/register` | No | Registra un nuevo usuario validando unicidad de email y nombre de usuario. |
 | **Auth** | `POST` | `/auth/login` | No | Inicia sesión y genera las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/logout` | No | Cierra la sesión limpiando las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
-| **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname de forma paginada (15 por página). |
+| **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nombre de usuario de forma paginada (15 por página). |
 | **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
-| **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nickname y/o email) del usuario autenticado. |
+| **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nombre de usuario y/o email) del usuario autenticado. |
 | **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
 | **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
@@ -112,7 +112,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 1.1 Registrar Usuario
 - **Ruta:** `POST /auth/register`
 - **Autenticación Requerida:** No
-- **Descripción:** Crea un nuevo usuario en la base de datos, encripta la contraseña con `bcrypt` (10 salt rounds) e inicia sesión automáticamente seteando las cookies de acceso y renovación. La validación de unicidad de email y nickname se delega a las restricciones del motor PostgreSQL (captura de error `23505`).
+- **Descripción:** Crea un nuevo usuario en la base de datos, encripta la contraseña con `bcrypt` (10 salt rounds) e inicia sesión automáticamente seteando las cookies de acceso y renovación. La validación de unicidad de email y nombre de usuario se delega a las restricciones del motor PostgreSQL (captura de error `23505`).
 
 #### Cuerpo de la Petición (`application/json`):
 ```json
@@ -143,9 +143,9 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
   ```
 - **`400 Bad Request`**: Error de validación o datos duplicados.
   - Email ya registrado: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
-  - Nickname ya registrado: `{"error": "NICKNAME_IN_USE", "message": "El nickname ya está en uso"}`
+  - Nombre de usuario ya registrado: `{"error": "NICKNAME_IN_USE", "message": "El nombre de usuario ya está en uso"}`
   - Contraseña inválida: `{"error": "INVALID_PASSWORD", "message": "La contraseña debe tener entre 8 y 12 caracteres"}`
-  - Nickname con espacios: `{"error": "INVALID_NICKNAME", "message": "El nickname no debe contener espacios"}`
+  - Nombre de usuario con espacios: `{"error": "INVALID_NICKNAME", "message": "El nombre de usuario no debe contener espacios"}`
 - **`500 Internal Server Error`**:
   ```json
   { "error": "REGISTER_ERROR", "message": "Error al registrar el usuario" }
@@ -243,10 +243,10 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ## 👤 2. Usuarios (`/users`)
 
-### 2.1 Buscar Usuarios por Nickname
+### 2.1 Buscar Usuarios por Nombre de Usuario
 - **Ruta:** `GET /users/search`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Busca usuarios cuyo `nickname` coincida parcialmente con el término ingresado (`ILIKE '%query%'`) de forma paginada (15 por página).
+- **Descripción:** Busca usuarios cuyo nombre de usuario coincida parcialmente con el término ingresado (`ILIKE '%query%'`) de forma paginada (15 por página).
 
 #### Parámetros de Consulta (Query Parameters):
 | Parámetro | Tipo | Requerido | Descripción |
@@ -320,7 +320,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.3 Actualizar Perfil del Usuario Autenticado
 - **Ruta:** `PATCH /users/me`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Permite actualizar de forma parcial los datos del perfil (`nickname` y/o `email`) del usuario actualmente autenticado. Se verifica la unicidad de los campos ante la base de datos (PostgreSQL `23505`) y que el nickname no contenga espacios.
+- **Descripción:** Permite actualizar de forma parcial los datos del perfil (`nickname` y/o `email`) del usuario actualmente autenticado. Se verifica la unicidad de los campos ante la base de datos (PostgreSQL `23505`) y que el nombre de usuario no contenga espacios.
 
 #### Cuerpo de la Petición (`application/json`):
 ```json
@@ -343,10 +343,10 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
   { "message": "Datos del usuario actualizados" }
   ```
 - **`400 Bad Request`**: Datos inválidos, faltantes o duplicados.
-  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes enviar al menos un nickname o un email"}`
-  - Nickname con espacios: `{"error": "INVALID_NICKNAME", "message": "El nickname no debe contener espacios"}`
+  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes enviar al menos un nombre de usuario o un email"}`
+  - Nombre de usuario con espacios: `{"error": "INVALID_NICKNAME", "message": "El nombre de usuario no debe contener espacios"}`
   - Email ya en uso: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
-  - Nickname ya en uso: `{"error": "NICKNAME_IN_USE", "message": "El nickname ya está en uso"}`
+  - Nombre de usuario ya en uso: `{"error": "NICKNAME_IN_USE", "message": "El nombre de usuario ya está en uso"}`
   - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
 - **`401 Unauthorized`**: Token ausente o inválido.
 - **`500 Internal Server Error`**:

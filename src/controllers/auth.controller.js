@@ -13,7 +13,7 @@ const register = async (req, res) => {
         }
 
         if (nickname.includes(' ')) {
-            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nickname no debe contener espacios" });
+            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nombre de usuario no debe contener espacios" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -30,7 +30,7 @@ const register = async (req, res) => {
             }
 
             if (error.constraint === 'users_nickname_key') {
-                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nickname ya está en uso" });
+                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nombre de usuario ya está en uso" });
             }
         }
 
