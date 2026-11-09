@@ -12,9 +12,9 @@ const create = async (nickname, email, hashedPassword) => {
     return result.rows[0];
 };
 
-const findByNickname = async (nickname) => {
-    const query = 'SELECT id, nickname FROM users WHERE nickname ILIKE $1';
-    const result = await pool.query(query, ['%' + nickname + '%']);
+const findByNickname = async (nickname, limit = 15, offset = 0) => {
+    const query = 'SELECT id, nickname FROM users WHERE nickname ILIKE $1 ORDER BY nickname ASC, id ASC LIMIT $2 OFFSET $3';
+    const result = await pool.query(query, ['%' + nickname + '%', limit, offset]);
     return result.rows;
 };
 

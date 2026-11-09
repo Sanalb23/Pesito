@@ -14,16 +14,21 @@ const { clearAuthCookies } = require('../utils/cookies');
 
 const searchByNickname = async (req, res) => {
     try {
-        const { query } = req.query;
+        const { query, page } = req.query;
 
         if (!query || query.trim() === '') {
             return res.status(400).json({ error: "MISSING_SEARCH_QUERY", message: 'Debes ingresar un termino de busqueda' });
         }
-        const user = await findByNickname(query);
-        if (!user) {
+
+        const pageNumber = Math.max(1, parseInt(page) || 1);
+        const limit = 15;
+        const offset = (pageNumber - 1) * limit;
+
+        const users = await findByNickname(query, limit, offset);
+        if (!users || users.length === 0) {
             return res.status(404).json({ error: "USER_NOT_FOUND", message: 'Usuario no encontrado' });
         }
-        res.status(200).json({ message: "Usuarios encontrados", data: user });
+        res.status(200).json({ message: "Usuarios encontrados", data: users });
     } catch (error) {
         res.status(500).json({ error: "SEARCH_USER_ERROR", message: error.message });
     }

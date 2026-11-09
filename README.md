@@ -73,7 +73,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/login` | No | Inicia sesión y genera las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/logout` | No | Cierra la sesión limpiando las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
-| **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname. |
+| **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nickname de forma paginada (15 por página). |
 | **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
 | **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nickname y/o email) del usuario autenticado. |
 | **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
@@ -246,14 +246,15 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.1 Buscar Usuarios por Nickname
 - **Ruta:** `GET /users/search`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Busca usuarios cuyo `nickname` coincida parcialmente con el término ingresado (`ILIKE '%query%'`).
+- **Descripción:** Busca usuarios cuyo `nickname` coincida parcialmente con el término ingresado (`ILIKE '%query%'`) de forma paginada (15 por página).
 
 #### Parámetros de Consulta (Query Parameters):
 | Parámetro | Tipo | Requerido | Descripción |
 | --- | --- | --- | --- |
 | `query` | `string` | Sí | Término de búsqueda (no puede estar vacío ni contener solo espacios). |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 15 usuarios por página. |
 
-**Ejemplo de Petición:** `GET /users/search?query=jugador`
+**Ejemplo de Petición:** `GET /users/search?query=jugador&page=2`
 
 #### Respuestas:
 - **`200 OK`**: Lista de usuarios coincidentes.
