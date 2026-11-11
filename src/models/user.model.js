@@ -19,7 +19,19 @@ const findByNickname = async (nickname, limit = 15, offset = 0) => {
 };
 
 const findById = async (id) => {
-    const query = 'SELECT id, nickname, email, created_at FROM users WHERE id = $1';
+    const query = `
+        SELECT 
+            u.id, 
+            u.nickname, 
+            u.email, 
+            u.created_at, 
+            u.profile_team_id,
+            t.name AS profile_team_name, 
+            t.logo_url AS profile_team_logo_url 
+        FROM users u
+        LEFT JOIN teams t ON u.profile_team_id = t.id 
+        WHERE u.id = $1`;
+
     const result = await pool.query(query, [id]);
     return result.rows[0];
 };
@@ -143,10 +155,10 @@ const updateUserData = async (id, fields = {}) => {
     const values = [];
     let index = 1;
 
-    const allowedColumns = ['nickname', 'email', 'password'];
+    const allowedColumns = ['nickname', 'email', 'password', 'profile_team_id'];
 
     for (const column of allowedColumns) {
-        if (fields[column] !== undefined && fields[column] !== null) {
+        if (fields[column] !== undefined) {
             setClauses.push(`${column} = $${index++}`);
             values.push(fields[column]);
         }

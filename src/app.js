@@ -22,6 +22,7 @@ const gameRoutes = require("./routes/game.routes");
 const matchRoutes = require("./routes/match.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const friendRoutes = require("./routes/friend.routes");
+const teamRoutes = require("./routes/team.routes");
 
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
@@ -29,6 +30,7 @@ app.use("/games", gameRoutes);
 app.use("/matches", matchRoutes);
 app.use("/notifications", notificationRoutes);
 app.use("/friends", friendRoutes);
+app.use("/teams", teamRoutes);
 
 const PORT = process.env.PORT || 3000;
 

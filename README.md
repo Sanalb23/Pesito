@@ -74,8 +74,9 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **Auth** | `POST` | `/auth/logout` | No | Cierra la sesión limpiando las cookies de acceso y renovación. |
 | **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
 | **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nombre de usuario de forma paginada (15 por página). |
-| **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado. |
+| **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado (incluyendo equipo de perfil). |
 | **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nombre de usuario y/o email) del usuario autenticado. |
+| **User** | `PATCH` | `/users/me/team` | **Sí** | Selecciona, actualiza o elimina el equipo del perfil del usuario autenticado. |
 | **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
 | **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
 | **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
@@ -83,6 +84,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 | **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
 | **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial paginado de partidos de un usuario específico (10 por página). |
 | **User** | `GET` | `/users/:userId/stats` | **Sí** | Obtiene las estadísticas globales y métricas de un usuario específico. |
+| **Team** | `GET` | `/teams` | No | Obtiene el listado de todos los equipos registrados en el sistema de forma paginada (15 por página). |
 | **Game** | `GET` | `/games` | No | Obtiene la lista de todos los juegos registrados. |
 | **Game** | `GET` | `/games/:gameId/leagues` | No | Obtiene las ligas asociadas a un juego. |
 | **Game** | `GET` | `/games/:gameId/leagues/:leagueId/teams` | No | Obtiene los equipos de una liga y juego específicos. |
@@ -286,7 +288,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.2 Obtener Perfil del Usuario Autenticado
 - **Ruta:** `GET /users/me`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Obtiene los datos del perfil del usuario actualmente autenticado en sesión (`id`, `nickname`, `email` y `created_at`).
+- **Descripción:** Obtiene los datos del perfil del usuario actualmente autenticado en sesión (`id`, `nickname`, `email`, `created_at`, `profile_team_id`, `profile_team_name` y `profile_team_logo_url`).
 
 #### Respuestas:
 - **`200 OK`**: Datos del usuario autenticado obtenidos correctamente.
@@ -297,7 +299,10 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
       "id": 1,
       "nickname": "jugador1",
       "email": "jugador1@ejemplo.com",
-      "created_at": "2026-09-15T18:00:00.000Z"
+      "created_at": "2026-09-15T18:00:00.000Z",
+      "profile_team_id": 4,
+      "profile_team_name": "Real Madrid",
+      "profile_team_logo_url": "https://..."
     }
   }
   ```
@@ -359,7 +364,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 ### 2.4 Obtener Perfil de un Usuario por ID
 - **Ruta:** `GET /users/:userId`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Obtiene los datos públicos del perfil de un usuario específico identificado por su `userId` (excluyendo datos privados como email y fecha de registro).
+- **Descripción:** Obtiene los datos públicos del perfil de un usuario específico identificado por su `userId` (incluyendo su equipo de perfil si tiene uno seleccionado).
 
 #### Parámetros de Ruta (Path Parameters):
 | Parámetro | Tipo | Requerido | Descripción |
@@ -375,7 +380,10 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
     "message": "Usuario obtenido",
     "data": {
       "id": 5,
-      "nickname": "jugadorPro"
+      "nickname": "jugadorPro",
+      "profile_team_id": 4,
+      "profile_team_name": "Real Madrid",
+      "profile_team_logo_url": "https://..."
     }
   }
   ```
@@ -395,29 +403,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.5 Eliminar Cuenta del Usuario Autenticado
-- **Ruta:** `DELETE /users/me`
-- **Autenticación Requerida:** **Sí** (`verifyToken`)
-- **Descripción:** Elimina de forma permanente la cuenta del usuario autenticado en la base de datos.
-
-#### Respuestas:
-- **`200 OK`**: Cuenta eliminada exitosamente.
-  ```json
-  { "message": "Cuenta eliminada" }
-  ```
-- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
-  ```json
-  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
-  ```
-- **`401 Unauthorized`**: Token ausente o inválido.
-- **`500 Internal Server Error`**:
-  ```json
-  { "error": "DELETE_ACCOUNT_ERROR", "message": "Error al eliminar la cuenta" }
-  ```
-
----
-
-### 2.6 Cambiar Contraseña del Usuario Autenticado
+### 2.5 Cambiar Contraseña del Usuario Autenticado
 - **Ruta:** `PATCH /users/me/change-password`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Permite cambiar la contraseña del usuario actualmente autenticado verificando la contraseña actual y encriptando la nueva contraseña con `bcryptjs` (10 salt rounds).
@@ -457,7 +443,64 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.7 Obtener Partidos del Usuario Autenticado
+### 2.6 Actualizar Equipo de Perfil del Usuario Autenticado
+- **Ruta:** `PATCH /users/me/team`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Asigna, actualiza o elimina el equipo de perfil del usuario autenticado enviando su `teamId` (o `null` para desvincular).
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "teamId": 4
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `teamId` | `integer \| null` | Sí | ID numérico positivo del equipo a seleccionar, o `null` para desvincular. |
+
+#### Respuestas:
+- **`200 OK`**: Equipo de perfil actualizado correctamente.
+  ```json
+  { "message": "Equipo de perfil actualizado" }
+  ```
+- **`400 Bad Request`**:
+  - Campo faltante: `{"error": "MISSING_FIELDS", "message": "Debes enviar un equipo"}`
+  - ID de equipo inválido: `{"error": "INVALID_TEAM_ID", "message": "Equipo no valido"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**:
+  - Equipo no existente: `{"error": "TEAM_NOT_FOUND", "message": "El equipo seleccionado no existe"}`
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "UPDATE_PROFILE_TEAM_ERROR", "message": "Error al actualizar el equipo del perfil" }
+  ```
+
+---
+
+### 2.7 Eliminar Cuenta del Usuario Autenticado
+- **Ruta:** `DELETE /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Elimina de forma permanente la cuenta del usuario autenticado en la base de datos.
+
+#### Respuestas:
+- **`200 OK`**: Cuenta eliminada exitosamente.
+  ```json
+  { "message": "Cuenta eliminada" }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_ACCOUNT_ERROR", "message": "Error al eliminar la cuenta" }
+  ```
+
+---
+
+### 2.8 Obtener Partidos del Usuario Autenticado
 - **Ruta:** `GET /users/me/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario actual (ya sea como local o como visitante) de forma paginada (10 por página), ordenados cronológicamente de forma descendente.
@@ -498,7 +541,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.8 Obtener Partidos de un Usuario por ID
+### 2.9 Obtener Partidos de un Usuario por ID
 - **Ruta:** `GET /users/:userId/matches`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta de forma paginada (10 por página).
@@ -532,7 +575,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.9 Obtener Estadísticas del Usuario Autenticado
+### 2.10 Obtener Estadísticas del Usuario Autenticado
 - **Ruta:** `GET /users/me/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
@@ -598,7 +641,7 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 
 ---
 
-### 2.10 Obtener Estadísticas de un Usuario por ID
+### 2.11 Obtener Estadísticas de un Usuario por ID
 - **Ruta:** `GET /users/:userId/stats`
 - **Autenticación Requerida:** **Sí** (`verifyToken`)
 - **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
@@ -755,6 +798,37 @@ Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`
 - **`400 Bad Request`**:
   ```json
   { "error": "INVALID_GAME_OR_LEAGUE_ID", "message": "Juego o liga no valida" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_TEAMS_ERROR", "message": "Error al obtener los equipos" }
+  ```
+
+---
+
+### 3.4 Obtener Catálogo General de Equipos
+- **Ruta:** `GET /teams`
+- **Autenticación Requerida:** No
+- **Descripción:** Obtiene la lista completa de equipos registrados en el sistema (`id`, `name` y `logo_url`) de forma paginada (15 por página), con soporte para búsqueda opcional por coincidencia de nombre (`query`).
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `query` | `string` | No | Búsqueda por coincidencia en el nombre del equipo. |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 15 equipos por página. |
+
+**Ejemplo de Petición:** `GET /teams?query=real&page=1`
+
+#### Respuestas:
+- **`200 OK`**: Lista de equipos obtenida correctamente.
+  ```json
+  {
+    "message": "Equipos obtenidos",
+    "data": [
+      { "id": 1, "name": "A.C. Milan", "logo_url": "https://..." },
+      { "id": 4, "name": "Real Madrid", "logo_url": "https://..." }
+    ]
+  }
   ```
 - **`500 Internal Server Error`**:
   ```json

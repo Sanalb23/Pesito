@@ -236,6 +236,39 @@ const updateAccount = async (req, res) => {
     }
 };
 
+const updateProfileTeam = async (req, res) => {
+    try {
+        const userId = parseId(req.user.id);
+
+        if (!userId) {
+            return res.status(400).json({ error: "INVALID_USER_ID", message: "Usuario no valido" });
+        }
+
+        const { teamId } = req.body;
+
+        if (teamId === undefined) {
+            return res.status(400).json({ error: "MISSING_FIELDS", message: "Debes seleccionar un equipo" });
+        }
+
+        const parsedTeamId = teamId === null ? null : parseId(teamId);
+        if (teamId !== null && !parsedTeamId) {
+            return res.status(400).json({ error: "INVALID_TEAM_ID", message: "Equipo no valido" });
+        }
+
+        await updateUserData(userId, { profile_team_id: parsedTeamId });
+
+        res.status(200).json({
+            message: "Equipo de perfil actualizado",
+        });
+    } catch (error) {
+        if (error.code === '23503') {
+            return res.status(404).json({ error: "TEAM_NOT_FOUND", message: "El equipo seleccionado no existe" });
+        }
+
+        res.status(500).json({ error: "UPDATE_PROFILE_TEAM_ERROR", message: "Error al actualizar el equipo del perfil" });
+    }
+};
+
 module.exports = {
     searchByNickname,
     getMyStats,
@@ -244,5 +277,6 @@ module.exports = {
     getUserById,
     deleteAccount,
     changePassword,
-    updateAccount
+    updateAccount,
+    updateProfileTeam
 };
