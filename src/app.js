@@ -2,8 +2,11 @@ const express = require("express");
 const app = express();
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const { generalLimiter, authLimiter } = require("./middlewares/rateLimiter");
 
 require('dotenv').config();
+
+app.set('trust proxy', 1);
 
 const corsOptions = {
     origin: true,
@@ -15,6 +18,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
+app.use(generalLimiter);
 
 const authRoutes = require("./routes/auth.routes");
 const userRoutes = require("./routes/user.routes");
@@ -24,7 +28,7 @@ const notificationRoutes = require("./routes/notification.routes");
 const friendRoutes = require("./routes/friend.routes");
 const teamRoutes = require("./routes/team.routes");
 
-app.use("/auth", authRoutes);
+app.use("/auth", authLimiter, authRoutes);
 app.use("/users", userRoutes);
 app.use("/games", gameRoutes);
 app.use("/matches", matchRoutes);

@@ -11,6 +11,7 @@ const {
     updateProfileTeam
 } = require("../controllers/user.controller");
 const { verifyToken } = require("../middlewares/auth");
+const { authLimiter } = require("../middlewares/rateLimiter");
 const {
     getMyMatches,
     getMatchesByUserId
@@ -25,7 +26,7 @@ router.patch("/me", verifyToken, updateAccount);
 router.delete("/me", verifyToken, deleteAccount);
 router.get("/me/matches", verifyToken, getMyMatches);
 router.get("/me/stats", verifyToken, getMyStats);
-router.patch("/me/change-password", verifyToken, changePassword);
+router.patch("/me/change-password", verifyToken, authLimiter, changePassword);
 router.patch("/me/team", verifyToken, updateProfileTeam);
 
 router.get("/:userId", verifyToken, getUserById);

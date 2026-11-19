@@ -42,6 +42,44 @@ La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies 
 
 ---
 
+## ⏱️ Control de Peticiones (Rate Limiting)
+
+Para proteger la API contra ataques de denegación de servicio (DoS) y fuerza bruta, se implementa limitación de tasa de solicitudes utilizando **`express-rate-limit`**.
+
+### 📊 Tipos de Límites Implementados
+
+| Tipo | Middleware | Ámbito | Límite | Ventana | Código de Error |
+| --- | --- | --- | --- | --- | --- |
+| **General** | `generalLimiter` | Todas las rutas de la API | 100 peticiones | 15 minutos | `TOO_MANY_REQUESTS` (`429`) |
+| **Autenticación** | `authLimiter` | Rutas `/auth/*` y `PATCH /users/me/change-password` | 10 intentos | 15 minutos | `AUTH_RATE_LIMIT_EXCEEDED` (`429`) |
+
+### 🛑 Respuestas al Exceder el Límite (`429 Too Many Requests`)
+
+- **Límite General (`TOO_MANY_REQUESTS`):**
+  ```json
+  {
+    "error": "TOO_MANY_REQUESTS",
+    "message": "Demasiadas peticiones desde esta IP. Por favor, intenta de nuevo más tarde."
+  }
+  ```
+
+- **Límite de Autenticación (`AUTH_RATE_LIMIT_EXCEEDED`):**
+  ```json
+  {
+    "error": "AUTH_RATE_LIMIT_EXCEEDED",
+    "message": "Demasiados intentos de autenticación desde esta IP. Por favor, intenta de nuevo más tarde."
+  }
+  ```
+
+### 📋 Cabeceras HTTP Incluidas
+
+Las respuestas incluyen las cabeceras estándar conforme a la especificación IETF (`draft-8`):
+- `RateLimit-Limit`: Cantidad máxima de peticiones permitidas en la ventana actual.
+- `RateLimit-Remaining`: Número de peticiones restantes disponibles en la ventana actual.
+- `RateLimit-Reset`: Tiempo restante en segundos hasta que se reinicie el contador.
+
+---
+
 ## 📐 Convención de Respuestas
 
 Todos los endpoints siguen una convención uniforme:
