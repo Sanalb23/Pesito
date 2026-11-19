@@ -224,11 +224,17 @@ input[type="password"]:focus {
 }
 
 /* Animacion del boton de ingresar */
-.enter-button input[type="submit"]:hover {
+.enter-button input[type="submit"]:hover:not(:disabled) {
     background-color: #eeff00;
     color: #000000;
     box-shadow: #eeff00 0px 0px 12px;
+}
 
+.enter-button input[type="submit"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: transparent;
+    box-shadow: none;
 }
 
 /* --------------------------
