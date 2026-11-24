@@ -19,6 +19,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap"
         rel="stylesheet">
+
+    <script src="src/public/JS/main.js"></script>
 </head>
 
 <body>
@@ -82,7 +84,8 @@
                             class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
 
                     <!-- CARGANDO DATOS INICIALES -->
-                    <section class="mr-card mr-card-center" id="mr-setup-loading" role="status" aria-live="polite" hidden>
+                    <section class="mr-card mr-card-center" id="mr-setup-loading" role="status" aria-live="polite"
+                        hidden>
                         <div class="mr-spinner"></div>
                         <h2>Cargando <span>juegos y jugadores</span></h2>
                         <p>Estamos trayendo los juegos y tu lista de amigos...</p>
@@ -92,7 +95,8 @@
                     <section class="mr-card mr-card-center" id="mr-setup-error" role="alert" hidden>
                         <i class="ph ph-warning-circle mr-error-icon"></i>
                         <h2>No se pudieron <span>cargar</span></h2>
-                        <p id="mr-setup-error-message">Hubo un problema al cargar los juegos y amigos. Inténtalo de nuevo.</p>
+                        <p id="mr-setup-error-message">Hubo un problema al cargar los juegos y amigos. Inténtalo de
+                            nuevo.</p>
                         <button type="button" class="analize-button" id="mr-setup-retry-button">Reintentar</button>
                     </section>
 
@@ -188,7 +192,8 @@
                     </section>
 
                     <!-- CARGANDO DATOS / EQUIPOS (CARGA MANUAL) -->
-                    <section class="mr-card mr-card-center" id="mr-teams-loading" role="status" aria-live="polite" hidden>
+                    <section class="mr-card mr-card-center" id="mr-teams-loading" role="status" aria-live="polite"
+                        hidden>
                         <div class="mr-spinner"></div>
                         <h2>Cargando <span>equipos</span></h2>
                         <p>Estamos preparando los datos y equipos para el partido...</p>
@@ -726,14 +731,16 @@
                         <i class="ph ph-funnel"></i>
                         <div class="search-div">
                             <input type="text" id="notification-search-input" placeholder="Filtrar notificación...">
-                            <button type="button" class="clear-search-btn" id="clear-notification-search" title="Limpiar"><i class="ph ph-x"></i></button>
+                            <button type="button" class="clear-search-btn" id="clear-notification-search"
+                                title="Limpiar"><i class="ph ph-x"></i></button>
                         </div>
                     </div>
                 </form>
 
                 <div class="notification-tabs">
                     <button type="button" class="notification-tab active" data-filter="all">Todas</button>
-                    <button type="button" class="notification-tab" data-filter="unread">No leídas <span class="tab-counter" id="unread-count-pill">3</span></button>
+                    <button type="button" class="notification-tab" data-filter="unread">No leídas <span
+                            class="tab-counter" id="unread-count-pill">3</span></button>
                     <button type="button" class="notification-tab" data-filter="match">Partidos</button>
                     <button type="button" class="notification-tab" data-filter="friend">Amigos</button>
                     <button type="button" class="notification-tab" data-filter="system">Sistema</button>
@@ -765,4 +772,4 @@
     <script src="src/public/JS/notifications.js"></script>
 </body>
 
-</html>
+</html>
