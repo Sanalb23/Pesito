@@ -1,0 +1,43 @@
+const express = require("express");
+const app = express();
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const { generalLimiter, authLimiter } = require("./middlewares/rateLimiter");
+
+require('dotenv').config();
+
+app.set('trust proxy', 1);
+
+const corsOptions = {
+    origin: true,
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+app.use(cookieParser());
+app.use(generalLimiter);
+
+const authRoutes = require("./routes/auth.routes");
+const userRoutes = require("./routes/user.routes");
+const gameRoutes = require("./routes/game.routes");
+const matchRoutes = require("./routes/match.routes");
+const notificationRoutes = require("./routes/notification.routes");
+const friendRoutes = require("./routes/friend.routes");
+const teamRoutes = require("./routes/team.routes");
+
+app.use("/auth", authLimiter, authRoutes);
+app.use("/users", userRoutes);
+app.use("/games", gameRoutes);
+app.use("/matches", matchRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/friends", friendRoutes);
+app.use("/teams", teamRoutes);
+
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+    console.log(`Server running on port https://localhost:${PORT}`);
+});

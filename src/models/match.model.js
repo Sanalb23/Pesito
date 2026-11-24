@@ -62,7 +62,11 @@ const create = async (matchData) => {
     return matchResult.rows[0];
 };
 
-const getMatchesByUserId = async (userId) => {
+const getMatchesByUserId = async (userId, page = 1) => {
+    const limit = 10;
+    const parsedPage = Math.max(1, parseInt(page) || 1);
+    const offset = (parsedPage - 1) * limit;
+
     const query = `
         SELECT m.id, u1.id as home_user_id, COALESCE(u1.nickname, 'Invitado') as home_user_nickname,
         t1.name as home_team_name,
@@ -77,10 +81,12 @@ const getMatchesByUserId = async (userId) => {
         INNER JOIN teams t1 ON tg1.team_id = t1.id
         INNER JOIN teams t2 ON tg2.team_id = t2.id
         WHERE m.home_user_id = $1 OR m.away_user_id = $1
-        ORDER BY date DESC;
+        ORDER BY date DESC
+        LIMIT $2
+        OFFSET $3;
     `;
 
-    const result = await pool.query(query, [userId]);
+    const result = await pool.query(query, [userId, limit, offset]);
     return result.rows;
 };
 

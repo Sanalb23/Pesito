@@ -90,18 +90,25 @@ const detectMatchStatsFromImage = async (fileBuffer, mimeType = "image/jpeg") =>
     - In "confidenceNotes", ONLY mention fields that could not be identified, are blurry, cropped, or have uncertain values. If there are no doubts and everything was clearly identified, leave "confidenceNotes" empty or null.
     `;
 
-    const model = ai.getGenerativeModel({ model: DEFAULT_GEMINI_MODEL });
 
-    const imagePart = {
-        inlineData: {
-            data: base64Data,
-            mimeType
+    const response = await ai.models.generateContent({
+        model: DEFAULT_GEMINI_MODEL,
+        contents: [
+            {
+                inlineData: {
+                    data: base64Data,
+                    mimeType
+                }
+            },
+            prompt
+        ],
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: matchDataSchema
         }
-    };
+    });
 
-    const response = await model.generateContent([prompt, imagePart]);
-
-    const rawText = response.response.text() || "";
+    const rawText = response.text || "";
     let parsedData;
 
     try {

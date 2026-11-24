@@ -2,12 +2,7 @@ const bcrypt = require('bcryptjs');
 const usersModel = require('../models/user.model');
 const { createToken, createRefreshToken, verifyRefreshToken } = require('../middlewares/auth');
 
-const cookieOptions = {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/'
-};
+const { cookieOptions, clearAuthCookies } = require('../utils/cookies');
 
 const register = async (req, res) => {
     try {
@@ -18,7 +13,7 @@ const register = async (req, res) => {
         }
 
         if (nickname.includes(' ')) {
-            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nickname no debe contener espacios" });
+            return res.status(400).json({ error: "INVALID_NICKNAME", message: "El nombre de usuario no debe contener espacios" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -35,7 +30,7 @@ const register = async (req, res) => {
             }
 
             if (error.constraint === 'users_nickname_key') {
-                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nickname ya está en uso" });
+                return res.status(400).json({ error: "NICKNAME_IN_USE", message: "El nombre de usuario ya está en uso" });
             }
         }
 
@@ -72,8 +67,7 @@ const login = async (req, res) => {
 
 const logout = async (req, res) => {
     try {
-        res.clearCookie('access_token', cookieOptions);
-        res.clearCookie('refresh_token', cookieOptions);
+        clearAuthCookies(res);
 
         res.status(200).json({ message: 'Se ha cerrado sesión correctamente' });
     } catch (error) {

@@ -12,14 +12,26 @@ const create = async (nickname, email, hashedPassword) => {
     return result.rows[0];
 };
 
-const findByNickname = async (nickname) => {
-    const query = 'SELECT id, nickname FROM users WHERE nickname ILIKE $1';
-    const result = await pool.query(query, ['%' + nickname + '%']);
+const findByNickname = async (nickname, limit = 15, offset = 0) => {
+    const query = 'SELECT id, nickname FROM users WHERE nickname ILIKE $1 ORDER BY nickname ASC, id ASC LIMIT $2 OFFSET $3';
+    const result = await pool.query(query, ['%' + nickname + '%', limit, offset]);
     return result.rows;
 };
 
 const findById = async (id) => {
-    const query = 'SELECT id, nickname, email, created_at, total_xp FROM users WHERE id = $1';
+    const query = `
+        SELECT 
+            u.id, 
+            u.nickname, 
+            u.email, 
+            u.created_at, 
+            u.profile_team_id,
+            t.name AS profile_team_name, 
+            t.logo_url AS profile_team_logo_url 
+        FROM users u
+        LEFT JOIN teams t ON u.profile_team_id = t.id 
+        WHERE u.id = $1`;
+
     const result = await pool.query(query, [id]);
     return result.rows[0];
 };
@@ -68,10 +80,10 @@ const getStatsByUserId = async (userId) => {
                 ms.away_penalties AS penalties,
                 ms.away_free_kicks AS free_kicks,
                 ms.away_corner_kicks AS corner_kicks,
-                ms.home_offsides AS offsides,
-                ms.home_fouls AS fouls,
-                ms.home_yellow_cards AS yellow_cards,
-                ms.home_red_cards AS red_cards,
+                ms.away_offsides AS offsides,
+                ms.away_fouls AS fouls,
+                ms.away_yellow_cards AS yellow_cards,
+                ms.away_red_cards AS red_cards,
                 ms.home_possession AS opponent_possession,
                 ms.home_shots AS opponent_shots,
                 ms.home_shots_on_target AS opponent_shots_on_target,
@@ -132,11 +144,40 @@ const deleteUser = async (id) => {
     await pool.query(query, [id]);
 };
 
+const findPasswordById = async (id) => {
+    const query = 'SELECT id, password FROM users WHERE id = $1';
+    const result = await pool.query(query, [id]);
+    return result.rows[0];
+};
+
+const updateUserData = async (id, fields = {}) => {
+    const setClauses = [];
+    const values = [];
+    let index = 1;
+
+    const allowedColumns = ['nickname', 'email', 'password', 'profile_team_id'];
+
+    for (const column of allowedColumns) {
+        if (fields[column] !== undefined) {
+            setClauses.push(`${column} = $${index++}`);
+            values.push(fields[column]);
+        }
+    }
+
+    if (setClauses.length === 0) return;
+
+    values.push(id);
+    const query = `UPDATE users SET ${setClauses.join(', ')} WHERE id = $${index}`;
+    await pool.query(query, values);
+};
+
 module.exports = {
     findByEmail,
     create,
     findByNickname,
     findById,
     getStatsByUserId,
-    deleteUser
+    deleteUser,
+    findPasswordById,
+    updateUserData
 };

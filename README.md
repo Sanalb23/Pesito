@@ -1,0 +1,1566 @@
+# Documentación de la API - Pesito
+
+Esta es la documentación oficial y completa de la API del proyecto **Pesito**. Describe todos los endpoints disponibles, sus mecanismos de autenticación, parámetros, esquemas de entrada/salida, lógica de negocio y códigos de respuesta.
+
+---
+
+## 📌 Configuración General
+
+- **URL Base:** `https://pesito-ejyz.onrender.com`
+- **Formato de datos:** `application/json` para peticiones estándar y `multipart/form-data` para subida de fotos (`/matches/detect-stats`).
+
+### ⚙️ Variables de Entorno
+
+| Variable | Tipo | Requerida | Descripción |
+| --- | --- | --- | --- |
+| `DATABASE_URL` | `string` | Sí | Cadena de conexión PostgreSQL (con soporte SSL `require`). |
+| `JWT_KEY` | `string` | Sí | Clave secreta para firmar tokens de acceso `access_token` (1 hora). |
+| `JWT_REFRESH_KEY` | `string` | Sí | Clave secreta para firmar tokens de renovación `refresh_token` (14 días). |
+| `GEMINI_API_KEY` | `string` | Sí | API Key de Google Gemini para procesamiento visual con IA. |
+| `GEMINI_MODEL` | `string` | No | Modelo de Gemini utilizado (por defecto `gemini-3.5-flash-lite`, recomendado para visión `gemini-3.1-flash-lite`). |
+| `BASE_URL` | `string` | No | URL base del servidor (ej. `http://localhost:3000`). |
+| `NODE_ENV` | `string` | No | Entorno de ejecución (`development`, `production`, `debug`). |
+
+---
+
+## 🔒 Mecanismo de Autenticación
+
+La API utiliza tokens de acceso **JWT (JSON Web Token)** almacenados en cookies seguras **HTTP-Only**.
+
+- **Cookies de Autenticación:**
+  - `access_token`: Token de acceso de corta duración (expira en 1 hora / `3600000 ms`).
+  - `refresh_token`: Token de renovación de larga duración (expira en 14 días / `1209600000 ms`).
+- **Configuración de las Cookies:**
+  - `httpOnly: true` (Protegidas contra lecturas desde JavaScript en el cliente).
+  - `secure: true` en producción (Se transmiten en conexiones HTTPS).
+  - `sameSite: 'strict'` (Protección contra ataques CSRF).
+- **Middleware de Autenticación (`verifyToken`):**
+  - Examina `req.cookies.access_token`.
+  - Si la cookie no está presente: Retorna estatus `401 Unauthorized` con el cuerpo `{"error": "MISSING_TOKEN", "message": "Token no proporcionado"}`.
+  - Si el token expiró o es inválido: Retorna estatus `401 Unauthorized` con el cuerpo `{"error": "INVALID_TOKEN", "message": "Token inválido"}`.
+  - Si es válido: Asigna `req.user = { id: decoded.id }` y permite el paso al controlador.
+
+---
+
+## ⏱️ Control de Peticiones (Rate Limiting)
+
+Para proteger la API contra ataques de denegación de servicio (DoS) y fuerza bruta, se implementa limitación de tasa de solicitudes utilizando **`express-rate-limit`**.
+
+### 📊 Tipos de Límites Implementados
+
+| Tipo | Middleware | Ámbito | Límite | Ventana | Código de Error |
+| --- | --- | --- | --- | --- | --- |
+| **General** | `generalLimiter` | Todas las rutas de la API | 100 peticiones | 15 minutos | `TOO_MANY_REQUESTS` (`429`) |
+| **Autenticación** | `authLimiter` | Rutas `/auth/*` y `PATCH /users/me/change-password` | 10 intentos | 15 minutos | `AUTH_RATE_LIMIT_EXCEEDED` (`429`) |
+
+### 🛑 Respuestas al Exceder el Límite (`429 Too Many Requests`)
+
+- **Límite General (`TOO_MANY_REQUESTS`):**
+  ```json
+  {
+    "error": "TOO_MANY_REQUESTS",
+    "message": "Demasiadas peticiones desde esta IP. Por favor, intenta de nuevo más tarde."
+  }
+  ```
+
+- **Límite de Autenticación (`AUTH_RATE_LIMIT_EXCEEDED`):**
+  ```json
+  {
+    "error": "AUTH_RATE_LIMIT_EXCEEDED",
+    "message": "Demasiados intentos de autenticación desde esta IP. Por favor, intenta de nuevo más tarde."
+  }
+  ```
+
+### 📋 Cabeceras HTTP Incluidas
+
+Las respuestas incluyen las cabeceras estándar conforme a la especificación IETF (`draft-8`):
+- `RateLimit-Limit`: Cantidad máxima de peticiones permitidas en la ventana actual.
+- `RateLimit-Remaining`: Número de peticiones restantes disponibles en la ventana actual.
+- `RateLimit-Reset`: Tiempo restante en segundos hasta que se reinicie el contador.
+
+---
+
+## 📐 Convención de Respuestas
+
+Todos los endpoints siguen una convención uniforme:
+
+**Éxito** (con datos):
+```json
+{ "message": "Operación realizada correctamente", "data": {} }
+```
+
+**Éxito** (sin datos — solo confirmación):
+```json
+{ "message": "Operación realizada correctamente" }
+```
+
+**Error**:
+```json
+{ "error": "ERROR_CODE", "message": "Descripción del problema" }
+```
+
+Los `error` codes siguen el formato `SCREAMING_SNAKE_CASE` (ej. `USER_NOT_FOUND`, `INVALID_PASSWORD`, `FORBIDDEN`).
+
+---
+
+## 🚀 Índice de Endpoints
+
+| Módulo | Método | Ruta | Autenticación | Descripción |
+| --- | --- | --- | --- | --- |
+| **Auth** | `POST` | `/auth/register` | No | Registra un nuevo usuario validando unicidad de email y nombre de usuario. |
+| **Auth** | `POST` | `/auth/login` | No | Inicia sesión y genera las cookies de acceso y renovación. |
+| **Auth** | `POST` | `/auth/logout` | No | Cierra la sesión limpiando las cookies de acceso y renovación. |
+| **Auth** | `POST` | `/auth/refresh` | No (Cookie) | Renueva la cookie `access_token` usando el `refresh_token`. |
+| **User** | `GET` | `/users/search` | **Sí** | Busca usuarios por coincidencia parcial de nombre de usuario de forma paginada (15 por página). |
+| **User** | `GET` | `/users/me` | **Sí** | Obtiene los datos del perfil del usuario autenticado (incluyendo equipo de perfil). |
+| **User** | `PATCH` | `/users/me` | **Sí** | Actualiza los datos del perfil (nombre de usuario y/o email) del usuario autenticado. |
+| **User** | `PATCH` | `/users/me/team` | **Sí** | Selecciona, actualiza o elimina el equipo del perfil del usuario autenticado. |
+| **User** | `PATCH` | `/users/me/change-password` | **Sí** | Cambia la contraseña del usuario autenticado. |
+| **User** | `DELETE` | `/users/me` | **Sí** | Elimina permanentemente la cuenta del usuario autenticado. |
+| **User** | `GET` | `/users/:userId` | **Sí** | Obtiene los datos públicos del perfil de un usuario específico. |
+| **User** | `GET` | `/users/me/matches` | **Sí** | Obtiene el historial paginado de partidos del usuario autenticado (10 por página). |
+| **User** | `GET` | `/users/me/stats` | **Sí** | Obtiene las estadísticas globales y métricas del usuario autenticado. |
+| **User** | `GET` | `/users/:userId/matches` | **Sí** | Obtiene el historial paginado de partidos de un usuario específico (10 por página). |
+| **User** | `GET` | `/users/:userId/stats` | **Sí** | Obtiene las estadísticas globales y métricas de un usuario específico. |
+| **Team** | `GET` | `/teams` | No | Obtiene el listado de todos los equipos registrados en el sistema de forma paginada (15 por página). |
+| **Game** | `GET` | `/games` | No | Obtiene la lista de todos los juegos registrados. |
+| **Game** | `GET` | `/games/:gameId/leagues` | No | Obtiene las ligas asociadas a un juego. |
+| **Game** | `GET` | `/games/:gameId/leagues/:leagueId/teams` | No | Obtiene los equipos de una liga y juego específicos. |
+| **Match** | `POST` | `/matches/detect-stats` | **Sí** | Procesa foto de pantalla de estadísticas con IA (Gemini) y mapea equipos a `teams_games`. |
+| **Match** | `POST` | `/matches` | **Sí** | Solicita la creación de un partido en estado inactivo y notifica al rival. |
+| **Match** | `PATCH` | `/matches/:matchId/confirm` | **Sí** | Confirma y activa un partido registrado. |
+| **Match** | `POST` | `/matches/:matchId/request-edit` | **Sí** | Solicita la edición de datos/estadísticas de un partido. |
+| **Match** | `PUT` | `/matches/:matchId` | **Sí** | Confirma la edición y actualiza los datos del partido. |
+| **Match** | `POST` | `/matches/:matchId/request-delete` | **Sí** | Solicita la eliminación de un partido. |
+| **Match** | `DELETE` | `/matches/:matchId` | **Sí** | Confirma y ejecuta la eliminación del partido. |
+| **Match** | `GET` | `/matches/:matchId` | **Sí** | Obtiene los datos detallados y estadísticas de un partido. |
+| **Friends** | `GET` | `/friends` | **Sí** | Obtiene el listado de amigos confirmados del usuario logueado. |
+| **Friends** | `GET` | `/friends/:userId` | **Sí** | Obtiene el estado contextual de relación de amistad con `userId`. |
+| **Friends** | `POST` | `/friends/:userId` | **Sí** | Envía una solicitud de amistad a un usuario. |
+| **Friends** | `PATCH` | `/friends/:userId` | **Sí** | Acepta una solicitud de amistad recibida. |
+| **Friends** | `DELETE` | `/friends/:userId` | **Sí** | Elimina o rechaza la relación de amistad con un usuario. |
+| **Notifications** | `GET` | `/notifications` | **Sí** | Obtiene el historial de notificaciones del usuario logueado. |
+| **Notifications** | `POST` | `/notifications` | **Sí** | Crea una nueva notificación (sistema o usuario). |
+| **Notifications** | `PATCH` | `/notifications/all` | **Sí** | Marca todas las notificaciones del usuario como leídas. |
+| **Notifications** | `PATCH` | `/notifications/:notificationId` | **Sí** | Marca una notificación específica como leída. |
+| **Notifications** | `DELETE` | `/notifications/:notificationId` | **Sí** | Elimina una notificación específica. |
+
+---
+
+## 🔑 1. Autenticación (`/auth`)
+
+### 1.1 Registrar Usuario
+- **Ruta:** `POST /auth/register`
+- **Autenticación Requerida:** No
+- **Descripción:** Crea un nuevo usuario en la base de datos, encripta la contraseña con `bcrypt` (10 salt rounds) e inicia sesión automáticamente seteando las cookies de acceso y renovación. La validación de unicidad de email y nombre de usuario se delega a las restricciones del motor PostgreSQL (captura de error `23505`).
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "nickname": "jugador1",
+  "email": "jugador1@ejemplo.com",
+  "password": "miPassword123"
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `nickname` | `string` | Sí | Único en el sistema (`users_nickname_key`). No debe contener espacios. |
+| `email` | `string` | Sí | Único en el sistema (`users_email_key`). |
+| `password` | `string` | Sí | Mínimo 8 caracteres, máximo 12 caracteres. |
+
+#### Respuestas:
+- **`201 Created`**: Usuario creado y autenticado correctamente.
+  ```json
+  {
+    "message": "Usuario registrado exitosamente",
+    "data": {
+      "id": 1,
+      "nickname": "jugador1",
+      "email": "jugador1@ejemplo.com"
+    }
+  }
+  ```
+- **`400 Bad Request`**: Error de validación o datos duplicados.
+  - Email ya registrado: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
+  - Nombre de usuario ya registrado: `{"error": "NICKNAME_IN_USE", "message": "El nombre de usuario ya está en uso"}`
+  - Contraseña inválida: `{"error": "INVALID_PASSWORD", "message": "La contraseña debe tener entre 8 y 12 caracteres"}`
+  - Nombre de usuario con espacios: `{"error": "INVALID_NICKNAME", "message": "El nombre de usuario no debe contener espacios"}`
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "REGISTER_ERROR", "message": "Error al registrar el usuario" }
+  ```
+
+---
+
+### 1.2 Iniciar Sesión
+- **Ruta:** `POST /auth/login`
+- **Autenticación Requerida:** No
+- **Descripción:** Autentica a un usuario existente mediante email y contraseña. Retorna los datos del usuario (excluyendo el hash de contraseña) y emite la cookie `access_token`.
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "email": "jugador1@ejemplo.com",
+  "password": "miPassword123"
+}
+```
+
+| Campo | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `email` | `string` | Sí | Correo electrónico registrado. |
+| `password` | `string` | Sí | Contraseña en texto plano. |
+
+#### Respuestas:
+- **`200 OK`**: Login exitoso.
+  ```json
+  {
+    "message": "Login exitoso",
+    "data": {
+      "id": 1,
+      "nickname": "jugador1",
+      "email": "jugador1@ejemplo.com"
+    }
+  }
+  ```
+- **`400 Bad Request`**: Credenciales inválidas.
+  - Usuario no encontrado: `{"error": "USER_NOT_FOUND", "message": "El usuario no existe"}`
+  - Contraseña incorrecta: `{"error": "INVALID_PASSWORD", "message": "Contraseña incorrecta"}`
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "LOGIN_ERROR", "message": "Error al iniciar sesión" }
+  ```
+
+---
+
+### 1.3 Cerrar Sesión
+- **Ruta:** `POST /auth/logout`
+- **Autenticación Requerida:** No
+- **Descripción:** Elimina las cookies de sesión `access_token` y `refresh_token` del cliente.
+
+#### Respuestas:
+- **`200 OK`**: Sesión cerrada.
+  ```json
+  { "message": "Se ha cerrado sesión correctamente" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "LOGOUT_ERROR", "message": "Error al cerrar sesión" }
+  ```
+
+---
+
+### 1.4 Renovación de Token
+- **Ruta:** `POST /auth/refresh`
+- **Autenticación Requerida:** No (Utiliza la cookie `refresh_token`)
+- **Descripción:** Emite un nuevo `access_token` en cookie utilizando el `refresh_token` almacenado en las cookies del usuario.
+
+#### Respuestas:
+- **`200 OK`**: Token renovado exitosamente.
+  ```json
+  {
+    "message": "Token renovado exitosamente",
+    "data": {
+      "id": 1,
+      "nickname": "jugador1"
+    }
+  }
+  ```
+- **`401 Unauthorized`**: Si la cookie `refresh_token` no fue proporcionada.
+  ```json
+  { "error": "MISSING_REFRESH_TOKEN", "message": "Refresh Token no proporcionado" }
+  ```
+- **`403 Forbidden`**: Si el `refresh_token` es inválido o ha expirado.
+  ```json
+  { "error": "INVALID_REFRESH_TOKEN", "message": "Refresh Token inválido o expirado" }
+  ```
+- **`404 Not Found`**: Si el usuario especificado en el token no existe en la base de datos.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+
+---
+
+## 👤 2. Usuarios (`/users`)
+
+### 2.1 Buscar Usuarios por Nombre de Usuario
+- **Ruta:** `GET /users/search`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Busca usuarios cuyo nombre de usuario coincida parcialmente con el término ingresado (`ILIKE '%query%'`) de forma paginada (15 por página).
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `query` | `string` | Sí | Término de búsqueda (no puede estar vacío ni contener solo espacios). |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 15 usuarios por página. |
+
+**Ejemplo de Petición:** `GET /users/search?query=jugador&page=2`
+
+#### Respuestas:
+- **`200 OK`**: Lista de usuarios coincidentes.
+  ```json
+  {
+    "message": "Usuarios encontrados",
+    "data": [
+      { "id": 1, "nickname": "jugador1" },
+      { "id": 5, "nickname": "jugadorPro" }
+    ]
+  }
+  ```
+- **`400 Bad Request`**: Si el parámetro `query` no fue proporcionado o está vacío.
+  ```json
+  { "error": "MISSING_SEARCH_QUERY", "message": "Debes ingresar un termino de busqueda" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si no se encuentra ningún usuario coincidente.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "SEARCH_USER_ERROR", "message": "..." }
+  ```
+
+---
+
+### 2.2 Obtener Perfil del Usuario Autenticado
+- **Ruta:** `GET /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil del usuario actualmente autenticado en sesión (`id`, `nickname`, `email`, `created_at`, `profile_team_id`, `profile_team_name` y `profile_team_logo_url`).
+
+#### Respuestas:
+- **`200 OK`**: Datos del usuario autenticado obtenidos correctamente.
+  ```json
+  {
+    "message": "Usuario obtenido",
+    "data": {
+      "id": 1,
+      "nickname": "jugador1",
+      "email": "jugador1@ejemplo.com",
+      "created_at": "2026-09-15T18:00:00.000Z",
+      "profile_team_id": 4,
+      "profile_team_name": "Real Madrid",
+      "profile_team_logo_url": "https://..."
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado en la base de datos.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_ERROR", "message": "Error al obtener los datos del usuario" }
+  ```
+
+---
+
+### 2.3 Actualizar Perfil del Usuario Autenticado
+- **Ruta:** `PATCH /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Permite actualizar de forma parcial los datos del perfil (`nickname` y/o `email`) del usuario actualmente autenticado. Se verifica la unicidad de los campos ante la base de datos (PostgreSQL `23505`) y que el nombre de usuario no contenga espacios.
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "nickname": "nuevoNickname",
+  "email": "nuevoEmail@ejemplo.com"
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `nickname` | `string` | No* | Único en el sistema. No debe contener espacios. |
+| `email` | `string` | No* | Único en el sistema. |
+
+*\* Al menos uno de los dos campos (`nickname` o `email`) debe ser proporcionado.*
+
+#### Respuestas:
+- **`200 OK`**: Datos actualizados correctamente.
+  ```json
+  { "message": "Datos del usuario actualizados" }
+  ```
+- **`400 Bad Request`**: Datos inválidos, faltantes o duplicados.
+  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes enviar al menos un nombre de usuario o un email"}`
+  - Nombre de usuario con espacios: `{"error": "INVALID_NICKNAME", "message": "El nombre de usuario no debe contener espacios"}`
+  - Email ya en uso: `{"error": "EMAIL_IN_USE", "message": "El email ya está en uso"}`
+  - Nombre de usuario ya en uso: `{"error": "NICKNAME_IN_USE", "message": "El nombre de usuario ya está en uso"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "UPDATE_USER_ERROR", "message": "Error al actualizar los datos del usuario" }
+  ```
+
+---
+
+### 2.4 Obtener Perfil de un Usuario por ID
+- **Ruta:** `GET /users/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos públicos del perfil de un usuario específico identificado por su `userId` (incluyendo su equipo de perfil si tiene uno seleccionado).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID numérico positivo del usuario. |
+
+**Ejemplo de Petición:** `GET /users/5`
+
+#### Respuestas:
+- **`200 OK`**: Datos públicos del usuario obtenidos correctamente.
+  ```json
+  {
+    "message": "Usuario obtenido",
+    "data": {
+      "id": 5,
+      "nickname": "jugadorPro",
+      "profile_team_id": 4,
+      "profile_team_name": "Real Madrid",
+      "profile_team_logo_url": "https://..."
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_ERROR", "message": "Error al obtener los datos del usuario" }
+  ```
+
+---
+
+### 2.5 Cambiar Contraseña del Usuario Autenticado
+- **Ruta:** `PATCH /users/me/change-password`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Permite cambiar la contraseña del usuario actualmente autenticado verificando la contraseña actual y encriptando la nueva contraseña con `bcryptjs` (10 salt rounds).
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "currentPassword": "miPassword123",
+  "newPassword": "miNuevaPassword123"
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `currentPassword` | `string` | Sí | Contraseña actual del usuario. |
+| `newPassword` | `string` | Sí | Nueva contraseña. Debe tener entre 8 y 12 caracteres. |
+
+#### Respuestas:
+- **`200 OK`**: Contraseña cambiada exitosamente.
+  ```json
+  { "message": "Contraseña cambiada" }
+  ```
+- **`400 Bad Request`**: Datos inválidos o incorrectos.
+  - Campos faltantes: `{"error": "MISSING_FIELDS", "message": "Debes ingresar la contraseña actual y la nueva contraseña"}`
+  - Contraseña nueva inválida: `{"error": "INVALID_PASSWORD", "message": "La contraseña debe tener entre 8 y 12 caracteres"}`
+  - Contraseña actual incorrecta: `{"error": "INVALID_CREDENTIALS", "message": "La contraseña actual es incorrecta"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CHANGE_PASSWORD_ERROR", "message": "Error al cambiar la contraseña" }
+  ```
+
+---
+
+### 2.6 Actualizar Equipo de Perfil del Usuario Autenticado
+- **Ruta:** `PATCH /users/me/team`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Asigna, actualiza o elimina el equipo de perfil del usuario autenticado enviando su `teamId` (o `null` para desvincular).
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "teamId": 4
+}
+```
+
+| Campo | Tipo | Requerido | Reglas de Validación |
+| --- | --- | --- | --- |
+| `teamId` | `integer \| null` | Sí | ID numérico positivo del equipo a seleccionar, o `null` para desvincular. |
+
+#### Respuestas:
+- **`200 OK`**: Equipo de perfil actualizado correctamente.
+  ```json
+  { "message": "Equipo de perfil actualizado" }
+  ```
+- **`400 Bad Request`**:
+  - Campo faltante: `{"error": "MISSING_FIELDS", "message": "Debes enviar un equipo"}`
+  - ID de equipo inválido: `{"error": "INVALID_TEAM_ID", "message": "Equipo no valido"}`
+  - ID de usuario inválido: `{"error": "INVALID_USER_ID", "message": "Usuario no valido"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**:
+  - Equipo no existente: `{"error": "TEAM_NOT_FOUND", "message": "El equipo seleccionado no existe"}`
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "UPDATE_PROFILE_TEAM_ERROR", "message": "Error al actualizar el equipo del perfil" }
+  ```
+
+---
+
+### 2.7 Eliminar Cuenta del Usuario Autenticado
+- **Ruta:** `DELETE /users/me`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Elimina de forma permanente la cuenta del usuario autenticado en la base de datos.
+
+#### Respuestas:
+- **`200 OK`**: Cuenta eliminada exitosamente.
+  ```json
+  { "message": "Cuenta eliminada" }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_ACCOUNT_ERROR", "message": "Error al eliminar la cuenta" }
+  ```
+
+---
+
+### 2.8 Obtener Partidos del Usuario Autenticado
+- **Ruta:** `GET /users/me/matches`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los partidos jugados por el usuario actual (ya sea como local o como visitante) de forma paginada (10 por página), ordenados cronológicamente de forma descendente.
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 10 partidos por página. |
+
+**Ejemplo de Petición:** `GET /users/me/matches?page=2`
+
+#### Respuestas:
+- **`200 OK`**: Lista de partidos del usuario en sesión.
+  ```json
+  {
+    "message": "Partidos obtenidos",
+    "data": [
+      {
+        "id": 12,
+        "home_user_id": 1,
+        "home_user_nickname": "jugador1",
+        "home_team_name": "Real Madrid",
+        "away_user_id": 3,
+        "away_user_nickname": "jugador3",
+        "away_team_name": "FC Barcelona",
+        "home_goals": 2,
+        "away_goals": 1,
+        "date": "2026-09-20T20:30:00.000Z"
+      }
+    ]
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MATCHES_ERROR", "message": "Error al obtener los partidos" }
+  ```
+
+---
+
+### 2.9 Obtener Partidos de un Usuario por ID
+- **Ruta:** `GET /users/:userId/matches`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los partidos jugados por el usuario especificado en los parámetros de la ruta de forma paginada (10 por página).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID numérico positivo del usuario. |
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 10 partidos por página. |
+
+**Ejemplo de Petición:** `GET /users/5/matches?page=2`
+
+#### Respuestas:
+- **`200 OK`**: Lista de partidos del usuario solicitado.
+  ```json
+  { "message": "Partidos obtenidos", "data": [ ... ] }
+  ```
+- **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MATCHES_ERROR", "message": "Error al obtener los partidos" }
+  ```
+
+---
+
+### 2.10 Obtener Estadísticas del Usuario Autenticado
+- **Ruta:** `GET /users/me/stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil y todas las estadísticas acumuladas y métricas promedio de los partidos jugados por el usuario autenticado (partidos jugados, victorias, empates, derrotas, goles a favor/en contra, posesión promedio, tiros, faltas, tarjetas, etc.).
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas del usuario obtenidas correctamente.
+  ```json
+  {
+    "message": "Estadísticas del usuario obtenidas",
+    "data": {
+      "user": {
+        "id": 1,
+        "nickname": "jugador1"
+      },
+      "stats": {
+        "matches_played": 10,
+        "wins": 6,
+        "draws": 2,
+        "losses": 2,
+        "goals_for": 18,
+        "goals_against": 10,
+        "goal_difference": 8,
+        "average_goals_for": 1.80,
+        "average_goals_against": 1.00,
+        "win_rate": 60.00,
+        "possession_average": 54.50,
+        "shots": 85,
+        "shots_on_target": 42,
+        "penalties": 1,
+        "free_kicks": 12,
+        "corner_kicks": 35,
+        "offsides": 8,
+        "fouls": 15,
+        "yellow_cards": 4,
+        "red_cards": 0,
+        "opponent_possession_average": 45.50,
+        "opponent_shots": 60,
+        "opponent_shots_on_target": 25,
+        "opponent_penalties": 0,
+        "opponent_free_kicks": 15,
+        "opponent_corner_kicks": 20,
+        "opponent_offsides": 5,
+        "opponent_fouls": 12,
+        "opponent_yellow_cards": 6,
+        "opponent_red_cards": 1
+      }
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el ID de usuario en la sesión es inválido.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado en la base de datos.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MY_STATS_ERROR", "message": "Error al obtener las estadísticas del usuario" }
+  ```
+
+---
+
+### 2.11 Obtener Estadísticas de un Usuario por ID
+- **Ruta:** `GET /users/:userId/stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los datos del perfil y las estadísticas acumuladas de partidos de un usuario específico identificado por su `userId`.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID numérico positivo del usuario. |
+
+**Ejemplo de Petición:** `GET /users/5/stats`
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas del usuario obtenidas correctamente.
+  ```json
+  {
+    "message": "Estadísticas del usuario obtenidas",
+    "data": {
+      "user": {
+        "id": 5,
+        "nickname": "jugadorPro"
+      },
+      "stats": {
+        "matches_played": 5,
+        "wins": 3,
+        "draws": 1,
+        "losses": 1,
+        "goals_for": 10,
+        "goals_against": 6,
+        "goal_difference": 4,
+        "average_goals_for": 2.00,
+        "average_goals_against": 1.20,
+        "win_rate": 60.00,
+        "possession_average": 52.00,
+        "shots": 40,
+        "shots_on_target": 22,
+        "penalties": 0,
+        "free_kicks": 5,
+        "corner_kicks": 14,
+        "offsides": 3,
+        "fouls": 8,
+        "yellow_cards": 2,
+        "red_cards": 0,
+        "opponent_possession_average": 48.00,
+        "opponent_shots": 30,
+        "opponent_shots_on_target": 12,
+        "opponent_penalties": 1,
+        "opponent_free_kicks": 7,
+        "opponent_corner_kicks": 9,
+        "opponent_offsides": 2,
+        "opponent_fouls": 6,
+        "opponent_yellow_cards": 3,
+        "opponent_red_cards": 0
+      }
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si el `userId` no es numérico o es `<= 0`.
+  ```json
+  { "error": "INVALID_USER_ID", "message": "Usuario no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si el usuario no fue encontrado.
+  ```json
+  { "error": "USER_NOT_FOUND", "message": "Usuario no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_USER_STATS_ERROR", "message": "Error al obtener las estadísticas del usuario" }
+  ```
+
+---
+
+## 🎮 3. Juegos, Ligas y Equipos (`/games`)
+
+### 3.1 Obtener Todos los Juegos
+- **Ruta:** `GET /games`
+- **Autenticación Requerida:** No
+- **Descripción:** Retorna la lista completa de videojuegos registrados, ordenados por año de lanzamiento en forma descendente (`release_year DESC`).
+
+#### Respuestas:
+- **`200 OK`**: Lista de juegos.
+  ```json
+  {
+    "message": "Juegos obtenidos",
+    "data": [
+      { "id": 1, "name": "eFootball 2024", "release_year": 2023 },
+      { "id": 2, "name": "PES 2021", "release_year": 2020 }
+    ]
+  }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_GAMES_ERROR", "message": "Error al obtener los juegos" }
+  ```
+
+---
+
+### 3.2 Obtener Ligas de un Juego
+- **Ruta:** `GET /games/:gameId/leagues`
+- **Autenticación Requerida:** No
+- **Descripción:** Obtiene las ligas que tienen equipos registrados para el juego especificado (`gameId`), ordenadas alfabéticamente por nombre.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `gameId` | `integer` | Sí | ID del juego a consultar. |
+
+#### Respuestas:
+- **`200 OK`**: Lista de ligas distintas.
+  ```json
+  {
+    "message": "Ligas obtenidas",
+    "data": [
+      { "id": 4, "name": "LaLiga EA Sports" },
+      { "id": 8, "name": "Premier League" }
+    ]
+  }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_GAME_ID", "message": "Juego no valido" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_LEAGUES_ERROR", "message": "Error al obtener las ligas" }
+  ```
+
+---
+
+### 3.3 Obtener Equipos por Juego y Liga
+- **Ruta:** `GET /games/:gameId/leagues/:leagueId/teams`
+- **Autenticación Requerida:** No
+- **Descripción:** Obtiene la lista de equipos pertenecientes a una liga y juego específicos.
+
+> ⚠️ **Nota Importante:** El campo `id` devuelto en el arreglo corresponde a la clave primaria de la tabla relacional `teams_games` (`tg.id`), el cual debe ser enviado como `homeTeamId` o `awayTeamId` al solicitar o registrar un partido.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `gameId` | `integer` | Sí | ID del juego. |
+| `leagueId` | `integer` | Sí | ID de la liga. |
+
+#### Respuestas:
+- **`200 OK`**: Lista de relaciones equipo-juego.
+  ```json
+  {
+    "message": "Equipos obtenidos",
+    "data": [
+      { "id": 45, "name": "Arsenal FC" },
+      { "id": 46, "name": "Chelsea FC" }
+    ]
+  }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_GAME_OR_LEAGUE_ID", "message": "Juego o liga no valida" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_TEAMS_ERROR", "message": "Error al obtener los equipos" }
+  ```
+
+---
+
+### 3.4 Obtener Catálogo General de Equipos
+- **Ruta:** `GET /teams`
+- **Autenticación Requerida:** No
+- **Descripción:** Obtiene la lista completa de equipos registrados en el sistema (`id`, `name` y `logo_url`) de forma paginada (15 por página), con soporte para búsqueda opcional por coincidencia de nombre (`query`).
+
+#### Parámetros de Consulta (Query Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `query` | `string` | No | Búsqueda por coincidencia en el nombre del equipo. |
+| `page` | `integer` | No | Número de página a consultar (por defecto `1`). Devuelve hasta 15 equipos por página. |
+
+**Ejemplo de Petición:** `GET /teams?query=real&page=1`
+
+#### Respuestas:
+- **`200 OK`**: Lista de equipos obtenida correctamente.
+  ```json
+  {
+    "message": "Equipos obtenidos",
+    "data": [
+      { "id": 1, "name": "A.C. Milan", "logo_url": "https://..." },
+      { "id": 4, "name": "Real Madrid", "logo_url": "https://..." }
+    ]
+  }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_TEAMS_ERROR", "message": "Error al obtener los equipos" }
+  ```
+
+---
+
+## ⚽ 4. Partidos (`/matches`)
+
+> 🔄 **Flujo de Solicitud y Confirmación:**
+> Los partidos no se registran inmediatamente de forma activa. Al crear un partido se guarda en estado **inactivo** y se notifica al contrincante. El rival debe confirmar el partido para activarlo. Asimismo, la edición y la eliminación requieren una propuesta/solicitud previa y la confirmación correspondiente del otro participante (`home_user_id` o `away_user_id`).
+
+### 4.1 Solicitar Creación de Partido
+- **Ruta:** `POST /matches`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Registra un nuevo partido en estado inactivo y genera una notificación de tipo `match_request` destinada al contrincante.
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "homeUserId": 1,
+  "awayUserId": 2,
+  "homeTeamId": 45,
+  "awayTeamId": 46,
+  "homeGoals": 3,
+  "awayGoals": 2,
+  "stats": {
+    "homePossession": 55,
+    "awayPossession": 45,
+    "homeShots": 12,
+    "awayShots": 8,
+    "homeShotsOnTarget": 6,
+    "awayShotsOnTarget": 3,
+    "homePenalties": 0,
+    "awayPenalties": 0,
+    "homeFreeKicks": 4,
+    "awayFreeKicks": 5,
+    "homeCornerKicks": 6,
+    "awayCornerKicks": 2,
+    "homeOffsides": 1,
+    "awayOffsides": 3,
+    "homeFouls": 8,
+    "awayFouls": 10,
+    "homeYellowCards": 1,
+    "awayYellowCards": 2,
+    "homeRedCards": 0,
+    "awayRedCards": 0
+  }
+}
+```
+
+| Campo | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `homeUserId` | `integer \| null` | Condicional | ID del usuario local. Si es `null` o se omite, se asigna como invitado. |
+| `awayUserId` | `integer \| null` | Condicional | ID del usuario visitante. Si es `null` o se omite, se asigna como invitado. |
+| `homeTeamId` | `integer` | Sí | ID de `teams_games` para el equipo local. |
+| `awayTeamId` | `integer` | Sí | ID de `teams_games` para el equipo visitante. |
+| `homeGoals` | `integer` | Sí | Goles del equipo local. |
+| `awayGoals` | `integer` | Sí | Goles del equipo visitante. |
+| `stats` | `object` | No | Estadísticas opcionales del encuentro. |
+
+#### Respuestas:
+- **`201 Created`**: Solicitud enviada correctamente.
+  ```json
+  {
+    "message": "Solicitud de partido creada",
+    "data": { "id": 18 }
+  }
+  ```
+- **`400 Bad Request`**: Si ambos participantes son nulos.
+  ```json
+  { "error": "MISSING_PLAYERS", "message": "Debes especificar al menos un jugador registrado" }
+  ```
+- **`400 Bad Request`**: Si `homeUserId` y `awayUserId` son el mismo jugador.
+  ```json
+  { "error": "SELF_MATCH_REQUEST", "message": "No puedes enviarte una solicitud de partido a ti mismo" }
+  ```
+- **`404 Not Found`**: Si el jugador local no existe.
+  ```json
+  { "error": "HOME_USER_NOT_FOUND", "message": "Jugador local no encontrado" }
+  ```
+- **`404 Not Found`**: Si el jugador visitante no existe.
+  ```json
+  { "error": "AWAY_USER_NOT_FOUND", "message": "Jugador visitante no encontrado" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CREATE_MATCH_ERROR", "message": "Error al crear el partido" }
+  ```
+
+---
+
+### 4.2 Confirmar Creación de Partido
+- **Ruta:** `PATCH /matches/:matchId/confirm`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Activa el partido (`setActive`) tras la aceptación del rival y envía una notificación `match_confirmation` al creador.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido a activar. |
+
+#### Respuestas:
+- **`200 OK`**: Partido confirmado y activado.
+  ```json
+  { "message": "Partido confirmado exitosamente" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`403 Forbidden`**: El usuario no es participante del partido.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para activar este partido" }
+  ```
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_MATCH_ERROR", "message": "Error al confirmar el partido" }
+  ```
+
+---
+
+### 4.3 Solicitar Edición de Partido
+- **Ruta:** `POST /matches/:matchId/request-edit`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Genera una notificación `match_edit_request` hacia el contrincante conteniendo la propuesta de modificación (`updatedMatchData`).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido que se desea editar. |
+
+#### Cuerpo de la Petición (`application/json`):
+Contiene los campos de partido o estadísticas que se proponen modificar.
+
+#### Respuestas:
+- **`200 OK`**: Solicitud de edición enviada.
+  ```json
+  { "message": "Solicitud de edición enviada exitosamente" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`403 Forbidden`**: Si el usuario no fue participante del partido.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para solicitar la edición de este partido" }
+  ```
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "REQUEST_EDIT_ERROR", "message": "Error al solicitar la edición del partido" }
+  ```
+
+---
+
+### 4.4 Confirmar Edición de Partido
+- **Ruta:** `PUT /matches/:matchId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Aplica los cambios aprobados en los datos y/o estadísticas del partido (`editMatch`) y envía la notificación `match_edit_confirmation`.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido a actualizar. |
+
+#### Cuerpo de la Petición (`application/json`):
+Acepta la estructura de datos del partido y objeto `stats` a actualizar.
+
+#### Respuestas:
+- **`200 OK`**: Partido actualizado correctamente.
+  ```json
+  { "message": "Partido editado exitosamente" }
+  ```
+- **`400 Bad Request`**: ID de partido inválido.
+  ```json
+  { "error": "INVALID_MATCH_ID", "message": "Partido no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`403 Forbidden`**: Si el usuario autenticado no fue participante del partido.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para editar este partido" }
+  ```
+- **`404 Not Found`**: El partido no existe.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_EDIT_ERROR", "message": "Error al editar el partido" }
+  ```
+
+---
+
+### 4.5 Solicitar Eliminación de Partido
+- **Ruta:** `POST /matches/:matchId/request-delete`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Genera una notificación `match_delete_request` al contrincante para solicitar su consentimiento para borrar el registro del partido.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido a eliminar. |
+
+#### Respuestas:
+- **`200 OK`**: Solicitud de eliminación enviada.
+  ```json
+  { "message": "Solicitud de eliminación enviada exitosamente" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`403 Forbidden`**: Si el usuario no es participante del encuentro.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para solicitar la eliminación de este partido" }
+  ```
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "REQUEST_DELETE_ERROR", "message": "Error al solicitar la eliminación del partido" }
+  ```
+
+---
+
+### 4.6 Confirmar y Ejecutar Eliminación de Partido
+- **Ruta:** `DELETE /matches/:matchId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Confirma y elimina de forma permanente el partido y sus estadísticas (`deleteMatch`), notificando la acción mediante `match_delete_confirmation`.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido a eliminar. |
+
+#### Respuestas:
+- **`200 OK`**: Partido eliminado exitosamente.
+  ```json
+  { "message": "Partido eliminado exitosamente" }
+  ```
+- **`400 Bad Request`**: ID no válido.
+  ```json
+  { "error": "INVALID_MATCH_ID", "message": "Partido no valido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`403 Forbidden`**: Si el usuario no fue participante del encuentro.
+  ```json
+  { "error": "FORBIDDEN", "message": "No tienes permiso para eliminar este partido" }
+  ```
+- **`404 Not Found`**: Si el partido no existe o no pudo eliminarse.
+  ```json
+  { "error": "DELETE_MATCH_FAILED", "message": "No se pudo eliminar el partido" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CONFIRM_DELETE_ERROR", "message": "Error al eliminar el partido" }
+  ```
+
+---
+
+### 4.7 Obtener Datos y Estadísticas de un Partido
+- **Ruta:** `GET /matches/:matchId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Obtiene los detalles de un partido por su ID junto con las estadísticas agregadas (`match_stats`).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `matchId` | `integer` | Sí | ID del partido a consultar. |
+
+#### Respuestas:
+- **`200 OK`**: Datos y estadísticas del partido.
+  ```json
+  {
+    "message": "Partido obtenido",
+    "data": {
+      "id": 18,
+      "home_user_id": 1,
+      "home_user_nickname": "jugador1",
+      "home_team_name": "Arsenal FC",
+      "away_user_id": 2,
+      "away_user_nickname": "jugador2",
+      "away_team_name": "Chelsea FC",
+      "home_goals": 3,
+      "away_goals": 2,
+      "date": "2026-09-20T21:40:00.000Z",
+      "stats": {
+        "id": 9,
+        "match_id": 18,
+        "home_possession": 55,
+        "away_possession": 45
+      }
+    }
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Partido no encontrado.
+  ```json
+  { "error": "MATCH_NOT_FOUND", "message": "Partido no encontrado" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_MATCH_ERROR", "message": "Error al obtener el partido" }
+  ```
+
+---
+
+### 4.8 Detección Automática de Estadísticas mediante Foto (IA Gemini)
+- **Ruta:** `POST /matches/detect-stats`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Tipo de Contenido:** `multipart/form-data`
+- **Descripción:** Analiza una fotografía o captura de la pantalla final de estadísticas de un partido de PES mediante la API multimodal de Google Gemini. Aplica convenciones visuales para interpretar:
+  - **Distribución espacial:** El equipo del lado **izquierdo** (o superior) es considerado Local (`homeTeam`), y el equipo del lado **derecho** (o inferior) es considerado Visitante (`awayTeam`).
+  - **Tabla de estadísticas en dos columnas:** La columna de números izquierda corresponde al local y la columna derecha al visitante.
+  - **Resolución fonética/textual de equipos:** Mapea automáticamente los nombres detectados a los IDs reales de `teams_games` mediante similitud trigram (`findTeamByName`).
+  - **Notas de confianza (`confidenceNotes`):** Solo se incluyen observaciones si existen campos ilegibles, borrosos, recortados o con ambigüedad. Si todo se identificó con total claridad, el valor devuelto es estrictamente `null`.
+
+#### Parámetros del Formulario (`multipart/form-data`):
+| Campo | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `gameId` | `integer` | Sí | ID del videojuego para buscar y asignar automáticamente `homeTeamId` y `awayTeamId` mediante similitud trigram. Debe proporcionarse estrictamente antes de la detección. Puede enviarse en el cuerpo o como query param (`?gameId=X`). |
+| `photo` / `image` / `file` | `File (Binary)` | Sí | Imagen de la pantalla de estadísticas (JPEG, PNG, WEBP, máx 10 MB). |
+| `homeUserId` | `integer` | No | ID del usuario local (por defecto se toma el ID del usuario autenticado). |
+| `awayUserId` | `integer` | No | ID del usuario rival si se conoce. |
+
+#### Respuestas:
+- **`200 OK`**: Estadísticas detectadas y esquema listo para enviar a `POST /matches`.
+  ```json
+  {
+    "message": "Estadísticas del partido detectadas exitosamente",
+    "data": {
+      "homeUserId": 1,
+      "awayUserId": 2,
+      "homeTeamId": 45,
+      "awayTeamId": 46,
+      "homeGoals": 3,
+      "awayGoals": 2,
+      "stats": {
+        "homePossession": 55,
+        "awayPossession": 45,
+        "homeShots": 12,
+        "awayShots": 8,
+        "homeShotsOnTarget": 6,
+        "awayShotsOnTarget": 3,
+        "homeCornerKicks": 6,
+        "awayCornerKicks": 2,
+        "homeFouls": 8,
+        "awayFouls": 10
+      },
+      "detectedTeams": {
+        "home": {
+          "detected": "Arsenal",
+          "matchedName": "Arsenal FC",
+          "teamGameId": 45
+        },
+        "away": {
+          "detected": "Chelsea",
+          "matchedName": "Chelsea FC",
+          "teamGameId": 46
+        }
+      },
+      "confidenceNotes": null
+    }
+  }
+  ```
+- **`400 Bad Request`**: Si no se proporciona un `gameId` válido.
+  ```json
+  {
+    "error": "MISSING_OR_INVALID_GAME_ID",
+    "message": "Debes especificar un ID de juego válido (gameId) antes de realizar la detección"
+  }
+  ```
+- **`400 Bad Request`**: Si no se adjuntó archivo o el archivo no es una imagen válida.
+  ```json
+  {
+    "error": "NO_FILE_UPLOADED",
+    "message": "Debes subir una imagen de las estadísticas del partido"
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**: Error durante el procesamiento o detección de la imagen.
+  ```json
+  {
+    "error": "STATS_DETECTION_ERROR",
+    "message": "Error al procesar la imagen y detectar las estadísticas del partido"
+  }
+  ```
+
+---
+
+## 👥 5. Gestión de Amigos (`/friends`)
+
+El módulo de amigos gestiona las relaciones vinculantes entre usuarios mediante la tabla `user_friends`. Incluye notificaciones automáticas para cada cambio de estado en la amistad.
+
+### 5.1 Obtener Lista de Amigos
+- **Ruta:** `GET /friends`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Retorna el listado de todos los usuarios con quienes el usuario autenticado mantiene una relación de amistad confirmada y activa (`status: 'Active'`).
+
+#### Respuestas:
+- **`200 OK`**: Lista de amigos confirmados.
+  ```json
+  {
+    "message": "Lista de amigos obtenida",
+    "data": [
+      { "id": 2, "nickname": "jugador2" }
+    ]
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_FRIENDS_ERROR", "message": "Error al obtener la lista de amigos" }
+  ```
+
+---
+
+### 5.2 Obtener Estado de Amistad con un Usuario
+- **Ruta:** `GET /friends/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Consulta y determina el estado contextual de la relación entre el usuario autenticado y el usuario especificado (`userId`).
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID del usuario a consultar. |
+
+#### Posibles Estados Devueltos (`status`):
+- `"none"`: No existe ninguna relación ni solicitud pendiente entre ambos usuarios.
+- `"self"`: El `userId` consultado pertenece al propio usuario en sesión.
+- `"active"`: Existe una relación de amistad activa y confirmada.
+- `"pending_sent"`: El usuario en sesión envió una solicitud que aún está pendiente de aceptación.
+- `"pending_received"`: El usuario `userId` envió una solicitud al usuario en sesión, pendiente de respuesta.
+
+#### Respuestas:
+- **`200 OK`**: Estado de la relación obtenido.
+  ```json
+  {
+    "message": "Estado de amistad obtenido",
+    "data": {
+      "status": "active",
+      "friendship": { "id": 4, "user_id": 1, "friend_id": 2, "status": "Active" }
+    }
+  }
+  ```
+- **`400 Bad Request`**:
+  ```json
+  { "error": "INVALID_USER_ID", "message": "ID de usuario inválido" }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_FRIENDSHIP_STATUS_ERROR", "message": "Error al obtener el estado de la amistad" }
+  ```
+
+---
+
+### 5.3 Enviar Solicitud de Amistad
+- **Ruta:** `POST /friends/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Registra una nueva relación de amistad en la tabla `user_friends` hacia el usuario especificado (`userId`) y crea automáticamente una notificación de tipo `friend_request` para el destinatario.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID del usuario al que se envía la solicitud. |
+
+#### Validaciones y Manejo de Restricciones PostgreSQL:
+- **Auto-solicitud:** Valida que `req.user.id !== userId`. Si son iguales, retorna `400 Bad Request`.
+- **Restricción `prevent_inverted_friendships` (Error PostgreSQL `23505`):** Evita solicitudes o relaciones duplicadas e invertidas entre dos mismos usuarios.
+- **Restricción `chk_ids_distinct` (Error PostgreSQL `23514`):** Previene auto-relaciones a nivel base de datos.
+
+#### Respuestas:
+- **`201 Created`**: Solicitud enviada exitosamente.
+  ```json
+  { "message": "Solicitud enviada", "data": { "id": 4 } }
+  ```
+- **`400 Bad Request`**:
+  - Auto-solicitud: `{"error": "SELF_REQUEST", "message": "No puedes enviarte una solicitud de amistad a ti mismo"}`
+- **`409 Conflict`**:
+  - Relación duplicada / invertida: `{"error": "FRIENDSHIP_ALREADY_EXISTS", "message": "Ya existe una solicitud o amistad activa con este usuario"}`
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "SEND_REQUEST_ERROR", "message": "Error al enviar la solicitud de amistad" }
+  ```
+
+---
+
+### 5.4 Aceptar Solicitud de Amistad
+- **Ruta:** `PATCH /friends/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Acepta una solicitud de amistad recibida de `userId`, cambiando el estado de la relación a `'Active'` y generando una notificación de tipo `friend_confirmation` para el usuario remitente.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID del usuario que envió la solicitud original. |
+
+#### Respuestas:
+- **`200 OK`**: Solicitud aceptada.
+  ```json
+  { "message": "Solicitud aceptada", "data": { "id": 4, "user_id": 2, "friend_id": 1, "status": "Active" } }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`404 Not Found`**: Si no existe una solicitud pendiente de ese usuario.
+  ```json
+  { "error": "REQUEST_NOT_FOUND", "message": "Solicitud no encontrada" }
+  ```
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "ACCEPT_REQUEST_ERROR", "message": "Error al aceptar la solicitud" }
+  ```
+
+---
+
+### 5.5 Eliminar o Rechazar Amistad
+- **Ruta:** `DELETE /friends/:userId`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Elimina la relación de amistad (o rechaza la solicitud pendiente) con el usuario `userId` borrando el registro en `user_friends`.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `userId` | `integer` | Sí | ID del usuario a desvincular. |
+
+#### Respuestas:
+- **`200 OK`**: Amistad eliminada o rechazada.
+  ```json
+  { "message": "Amistad eliminada", "data": { "id": 4, "user_id": 1, "friend_id": 2, "status": "Active" } }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_FRIEND_ERROR", "message": "Error al eliminar amigo" }
+  ```
+
+---
+
+## 🔔 6. Notificaciones (`/notifications`)
+
+El módulo de notificaciones gestiona la creación, lectura y eliminación de alertas del sistema y eventos sociales/de partidos.
+
+> ⚠️ **Uso del campo `content` y renderizado en Frontend:**
+> - **Campo `content`:** Se utiliza **únicamente** en notificaciones de tipo `match_edit_request` para almacenar el objeto/cadena JSON con los datos propuestos para la edición (`updatedMatchData`). Para el resto de tipos de notificaciones, este campo viaja como `null`.
+> - **Textos e Interfaz (Frontend):** Los mensajes de interfaz (ej. *"te envió una solicitud de amistad"*, *"ahora son amigos"*, *"solicitó confirmar un partido"*, etc.) **deben ser generados y construidos dinámicamente por el frontend** interpretando el campo `type` de la notificación junto con la información del remitente (`sender_nickname`).
+
+### Tipos de Notificaciones Soportados:
+- `friend_request`: Solicitud de amistad recibida.
+- `friend_confirmation`: Solicitud de amistad aceptada.
+- `match_request`: Solicitud de creación de partido.
+- `match_confirmation`: Partido confirmado y activado.
+- `match_edit_request`: Propuesta de modificación de partido (única que contiene los datos propuestos en `content`).
+- `match_edit_confirmation`: Modificación de partido aprobada.
+- `match_delete_request`: Solicitud de eliminación de partido.
+- `match_delete_confirmation`: Partido eliminado.
+
+---
+
+### 6.1 Obtener Historial de Notificaciones
+- **Ruta:** `GET /notifications` (o `GET /notifications/:userId`)
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Retorna la lista de notificaciones del usuario logueado. Cada notificación incluye la propiedad `sender_nickname` obtenida mediante un `LEFT JOIN` con la tabla `users`.
+
+#### Respuestas:
+- **`200 OK`**: Listado de notificaciones.
+  ```json
+  {
+    "message": "Notificaciones obtenidas",
+    "data": [
+      {
+        "id": 10,
+        "sender_id": 2,
+        "sender_nickname": "jugador2",
+        "receiver_id": 1,
+        "type": "friend_request",
+        "content": null,
+        "friendship_id": 4,
+        "match_id": null,
+        "is_read": false,
+        "created_at": "2026-09-25T14:30:00.000Z"
+      }
+    ]
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "GET_NOTIFICATIONS_ERROR", "message": "Error al obtener las notificaciones" }
+  ```
+
+---
+
+### 6.2 Crear Notificación
+- **Ruta:** `POST /notifications`
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Crea una notificación en el sistema. Permite `senderId` opcional (`null` para notificaciones enviadas por el sistema) y asocia automáticamente `friendship_id` o `match_id` según el valor de `type`.
+
+#### Cuerpo de la Petición (`application/json`):
+```json
+{
+  "senderId": 2,
+  "receiverId": 1,
+  "type": "match_edit_request",
+  "content": "{\"homeGoals\":3,\"awayGoals\":3}",
+  "relatedId": 18
+}
+```
+
+| Campo | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `senderId` | `integer \| null` | No | ID del usuario remitente. `null` para el sistema. |
+| `receiverId` | `integer` | Sí | ID del usuario destinatario. |
+| `type` | `string` | Sí | Tipo de evento de notificación (`friend_request`, `match_edit_request`, etc.). |
+| `content` | `string \| null` | No | Datos de la notificación. **Solo se usa en `match_edit_request`** para enviar la propuesta de cambios; en los demás tipos es `null`. |
+| `relatedId` | `integer \| null` | No | ID asociado (`friendship_id` o `match_id`). |
+
+#### Respuestas:
+- **`201 Created`**: Notificación creada.
+  ```json
+  { "message": "Notificación creada", "data": { "id": 12 } }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "CREATE_NOTIFICATION_ERROR", "message": "Error al crear la notificación" }
+  ```
+
+---
+
+### 6.3 Marcar Notificación como Leída
+- **Ruta:** `PATCH /notifications/:notificationId` (o `PUT /notifications/:userId/:notificationId`)
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Actualiza el campo `is_read` a `true` para la notificación especificada.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `notificationId` | `integer` | Sí | ID de la notificación a actualizar. |
+
+#### Respuestas:
+- **`200 OK`**: Notificación marcada como leída.
+  ```json
+  { "message": "Notificación marcada como leída", "data": { "id": 10 } }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "MARK_NOTIFICATION_ERROR", "message": "Error al marcar la notificación como leída" }
+  ```
+
+---
+
+### 6.4 Marcar Todas las Notificaciones como Leídas
+- **Ruta:** `PATCH /notifications/all` (o `PUT /notifications/:userId/all`)
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Marca masivamente como leídas todas las notificaciones pertenecientes al usuario autenticado.
+
+#### Respuestas:
+- **`200 OK`**: Notificaciones actualizadas.
+  ```json
+  {
+    "message": "Todas las notificaciones marcadas como leídas",
+    "data": [ { "id": 10 }, { "id": 11 } ]
+  }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "MARK_ALL_NOTIFICATIONS_ERROR", "message": "Error al marcar todas las notificaciones como leídas" }
+  ```
+
+---
+
+### 6.5 Eliminar Notificación
+- **Ruta:** `DELETE /notifications/:notificationId` (o `DELETE /notifications/:userId/:notificationId`)
+- **Autenticación Requerida:** **Sí** (`verifyToken`)
+- **Descripción:** Elimina permanentemente una notificación específica por su ID.
+
+#### Parámetros de Ruta (Path Parameters):
+| Parámetro | Tipo | Requerido | Descripción |
+| --- | --- | --- | --- |
+| `notificationId` | `integer` | Sí | ID de la notificación a eliminar. |
+
+#### Respuestas:
+- **`200 OK`**: Notificación eliminada.
+  ```json
+  { "message": "Notificación eliminada", "data": { "id": 10 } }
+  ```
+- **`401 Unauthorized`**: Token ausente o inválido.
+- **`500 Internal Server Error`**:
+  ```json
+  { "error": "DELETE_NOTIFICATION_ERROR", "message": "Error al eliminar la notificación" }
+  ```

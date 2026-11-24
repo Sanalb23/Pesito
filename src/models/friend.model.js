@@ -23,9 +23,9 @@ const getFriends = async (userId) => {
     const query = `
     SELECT u.id, u.nickname
     FROM user_friends uf
-    JOIN users u ON u.id = CASE
-        WHEN uf.user_id = $1 THEN uf.friend_id
-        ELSE uf.user_id
+    JOIN users u ON u.id = CASE 
+        WHEN uf.user_id = $1 THEN uf.friend_id 
+        ELSE uf.user_id 
     END
     WHERE (uf.user_id = $1 OR uf.friend_id = $1) AND uf.status = 'Active';`
     const result = await pool.query(query, [userId]);

@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenAI } = require("@google/genai");
 
 const apiKey = process.env.GEMINI_API_KEY;
 
@@ -7,9 +7,9 @@ if (!apiKey) {
     console.warn("ADVERTENCIA: GEMINI_API_KEY no está definida en las variables de entorno.");
 }
 
-const ai = new GoogleGenerativeAI(apiKey);
+const ai = new GoogleGenAI({ apiKey });
 
-const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-1.5-flash";
+const DEFAULT_GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
 
 module.exports = {
     ai,
