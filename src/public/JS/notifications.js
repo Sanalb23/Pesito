@@ -1,5 +1,6 @@
 (function () {
     const api = window.pesitoApi.notifications;
+    const escapeHtml = window.pesitoEscapeHtml;
 
     const state = {
         notifications: [],
@@ -36,6 +37,29 @@
         document.querySelector('#nt-dashboard').hidden = false;
     }
 
+    const TYPE_TEXT = {
+        friend_request: 'te envió una solicitud de amistad',
+        friend_confirmation: 'aceptó tu solicitud de amistad',
+        match_request: 'te envió una solicitud de partido',
+        match_confirmation: 'confirmó un partido',
+        match_edit_request: 'quiere editar un partido',
+        match_edit_confirmation: 'editó un partido',
+        match_delete_request: 'quiere eliminar un partido',
+        match_delete_confirmation: 'eliminó un partido'
+    };
+
+    function buildNotificationText(notification) {
+        const action = TYPE_TEXT[notification.type];
+        if (action) {
+            const sender = notification.sender_nickname || 'El sistema';
+            return `${sender} ${action}`;
+        }
+        if (typeof notification.content === 'string' && notification.content && notification.content !== '[object Object]') {
+            return notification.content;
+        }
+        return 'Notificación';
+    }
+
     function renderNotification(notification) {
         const isUnread = !notification.is_read;
         const isMatch = notification.type.includes('match');
@@ -66,7 +90,7 @@
             <li class="nt-item ${isMatch ? 'nt-kind-match' : ''} ${isFriend ? 'nt-kind-friend' : ''} ${isUnread ? 'nt-unread' : ''}" data-notification-id="${notification.id}">
                 <span class="nt-icon">${icon}</span>
                 <div class="nt-body">
-                    <p class="nt-text">${notification.content || 'Notificación'}</p>
+                    <p class="nt-text">${escapeHtml(buildNotificationText(notification))}</p>
                     <span class="nt-time">${formatTime(notification.created_at)}</span>
                     ${actions}
                 </div>
@@ -115,11 +139,10 @@
             unreadBadge.textContent = unreadCount;
         }
 
-        const navBadge = document.querySelector('.nav-badge');
-        if (navBadge) {
-            navBadge.textContent = unreadCount;
-            navBadge.hidden = unreadCount === 0;
-        }
+        document.querySelectorAll('.nav-badge').forEach((badge) => {
+            badge.textContent = unreadCount;
+            badge.hidden = unreadCount === 0;
+        });
     }
 
     async function loadNotifications() {
@@ -192,6 +215,18 @@
         markAllReadBtn.addEventListener('click', markAllAsRead);
     }
 
+    async function acceptFriendRequest(senderId, notificationId) {
+        try {
+            await window.pesitoApi.friends.acceptFriendRequest(senderId);
+            alert('Solicitud de amistad aceptada.');
+            markAsRead(notificationId);
+            loadNotifications();
+        } catch (error) {
+            console.error('Error al aceptar solicitud de amistad:', error);
+            alert(`Error al aceptar la solicitud: ${error.message || 'intentá de nuevo.'}`);
+        }
+    }
+
     // Delegación de eventos para botones dinámicos
     document.addEventListener('click', (e) => {
         // Descartar notificación
@@ -213,9 +248,7 @@
         if (e.target.classList.contains('accept-friend-btn')) {
             const notificationId = e.target.dataset.notificationId;
             const senderId = e.target.dataset.senderId;
-            // Aquí deberías llamar a la API de amigos
-            alert('Funcionalidad de aceptar amistad: integrar con friends.js');
-            markAsRead(notificationId);
+            acceptFriendRequest(senderId, notificationId);
         }
 
         // Rechazar solicitud de amistad
@@ -227,7 +260,7 @@
         // Aceptar partido
         if (e.target.classList.contains('accept-match-btn')) {
             const notificationId = e.target.dataset.notificationId;
-            alert('Funcionalidad de aceptar partido: integrar con match system');
+            alert('La confirmación de partidos todavía no está disponible.');
             markAsRead(notificationId);
         }
 
@@ -238,18 +271,23 @@
         }
     });
 
-    // Cargar notificaciones cuando se abre el menú
-    const notificationsMenu = document.getElementById('notifications-menu');
-    if (notificationsMenu) {
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.target === notificationsMenu && !notificationsMenu.hidden) {
-                    loadNotifications();
-                }
-            });
+    // Cargar notificaciones al abrir la sección (la navegación es por :target/hash)
+    window.addEventListener('hashchange', () => {
+        if (window.location.hash === '#notifications-menu') {
+            loadNotifications();
+        }
+    });
+
+    const ntBackButton = document.getElementById('nt-back-button');
+    if (ntBackButton) {
+        ntBackButton.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.location.hash = '';
         });
-        observer.observe(notificationsMenu, { attributes: true, attributeFilter: ['hidden'] });
     }
+
+    // Carga inicial para mostrar el contador de no leídas en la campana
+    loadNotifications();
 
     const retryButton = document.getElementById('nt-retry-button');
     if (retryButton) {

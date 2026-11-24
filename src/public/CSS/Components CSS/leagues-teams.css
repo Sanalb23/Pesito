@@ -1,0 +1,233 @@
+/* TRANSICION */
+.leagues-teams-content {
+    transition: opacity 0.4s ease;
+}
+
+
+/* CONTENEDOR DE EQUIPOS Y LIGAS */
+.leagues-teams-menu {
+    --lt-yellow: yellow;
+    --lt-card: rgb(31, 31, 31);
+    --lt-card-light: rgb(45, 45, 45);
+    --lt-surface: rgb(70, 70, 68);
+    --lt-muted: rgb(185, 185, 185);
+    --lt-loss: rgb(229, 83, 83);
+
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    padding: calc(10vh + 10px) 20px 20px;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(4px);
+    overflow-y: auto;
+    color: white;
+    text-align: left;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.leagues-teams-menu [hidden] {
+    display: none !important;
+}
+
+.leagues-teams-content {
+    width: 100%;
+    max-width: 960px;
+    margin: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+
+/* TARJETAS */
+.lt-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 24px 30px;
+    background-color: var(--lt-card);
+    border-radius: 20px;
+}
+
+.lt-card-center {
+    align-items: center;
+    text-align: center;
+    padding: 50px 30px;
+}
+
+.lt-card h2 span {
+    color: var(--lt-yellow);
+}
+
+.lt-card h3 {
+    font-size: 1.1rem;
+}
+
+.lt-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.leagues-teams-menu .analize-button {
+    font-family: 'Montserrat', sans-serif;
+    padding: 12px 20px;
+}
+
+
+/* SELECTOR DE JUEGO */
+.lt-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+}
+
+.lt-field > span {
+    font-weight: bold;
+    color: white;
+}
+
+.lt-field select {
+    width: 100%;
+    height: 45px;
+    padding: 0 15px;
+    background-color: var(--lt-surface);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.lt-field select:focus-visible {
+    outline: 2px solid var(--lt-yellow);
+    outline-offset: 2px;
+}
+
+
+/* CARGANDO Y ERROR */
+.lt-spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid var(--lt-surface);
+    border-top-color: var(--lt-yellow);
+    border-radius: 50%;
+    animation: lt-spin 0.9s linear infinite;
+}
+
+@keyframes lt-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.lt-error-icon {
+    font-size: 72px;
+    color: var(--lt-loss);
+}
+
+.lt-empty-icon {
+    font-size: 72px;
+    color: var(--lt-yellow);
+}
+
+.lt-card-center p {
+    color: var(--lt-muted);
+    line-height: 1.4;
+}
+
+
+/* LIGAS Y EQUIPOS */
+.lt-leagues {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.lt-league {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px 24px;
+    background-color: var(--lt-card);
+    border-radius: 20px;
+}
+
+.lt-league-title {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: white;
+}
+
+.lt-league-title small {
+    color: var(--lt-muted);
+    font-weight: normal;
+    font-size: 0.85rem;
+}
+
+.lt-teams-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.lt-team {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 10px;
+    background-color: var(--lt-card-light);
+    border-radius: 15px;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.lt-team:hover {
+    background-color: var(--lt-surface);
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.35);
+}
+
+.lt-team-logo {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--lt-muted);
+    font-size: 34px;
+}
+
+.lt-team-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.lt-team-name {
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+
+/* PANTALLAS CHICAS */
+@media (max-width: 768px) {
+    .lt-card {
+        padding: 18px;
+    }
+
+    .lt-teams-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+}

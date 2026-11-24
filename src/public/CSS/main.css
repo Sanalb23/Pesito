@@ -288,7 +288,9 @@ header {
     .main-hero .match-register-menu,
     .main-hero .user-stats-menu,
     .main-hero .my-account-menu,
-    .main-hero .my-matches-menu {
+    .main-hero .my-matches-menu,
+    .main-hero .leagues-teams-menu,
+    .main-hero .notifications-menu {
         padding-left: 12px;
         padding-right: 12px;
         padding-bottom: 90px;
@@ -353,7 +355,9 @@ header {
     .main-hero .match-register-menu,
     .main-hero .user-stats-menu,
     .main-hero .my-account-menu,
-    .main-hero .my-matches-menu {
+    .main-hero .my-matches-menu,
+    .main-hero .leagues-teams-menu,
+    .main-hero .notifications-menu {
         padding-bottom: 70px;
         padding-top: calc(6vh + 10px);
     }

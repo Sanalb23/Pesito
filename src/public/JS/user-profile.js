@@ -1,6 +1,7 @@
 (function () {
     const api = window.pesitoApi;
     const calc = window.pesitoStatsCalc;
+    const escapeHtml = window.pesitoEscapeHtml;
 
     const state = {
         currentUser: null,
@@ -87,7 +88,7 @@
             legend.innerHTML = `
                 <span>Tú <strong>${wins}</strong></span>
                 <span>Empates <strong>${draws}</strong></span>
-                <span>${state.profileUser?.nickname || 'Él'} <strong>${losses}</strong></span>
+                <span>${escapeHtml(state.profileUser?.nickname) || 'Él'} <strong>${losses}</strong></span>
             `;
         }
     }
@@ -124,7 +125,7 @@
 
         } catch (error) {
             console.error('Error al cargar perfil:', error);
-            alert('Error al cargar el perfil del usuario');
+            alert(`Error al cargar el perfil: ${error.message || 'intentá de nuevo.'}`);
         }
     }
 
@@ -164,11 +165,11 @@
 
             try {
                 await api.friends.deleteFriend(userId);
-                alert('Amigo eliminado');
+                alert('Amigo eliminado.');
                 deleteFriendBtn.classList.add('hidden');
             } catch (error) {
                 console.error('Error al eliminar amigo:', error);
-                alert('Error al eliminar amigo');
+                alert(`Error al eliminar al amigo: ${error.message || 'intentá de nuevo.'}`);
             }
         });
     }
@@ -177,7 +178,7 @@
     const compareBtn = document.querySelector('.pp-actions .analize-button');
     if (compareBtn) {
         compareBtn.addEventListener('click', () => {
-            alert('Funcionalidad de comparación de estadísticas: próximamente');
+            alert('La comparación de estadísticas estará disponible pronto.');
         });
     }
 

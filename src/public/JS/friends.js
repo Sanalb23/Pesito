@@ -1,5 +1,6 @@
 (function () {
     const api = window.pesitoApi;
+    const escapeHtml = window.pesitoEscapeHtml;
 
     const state = {
         friends: [],
@@ -12,7 +13,7 @@
     }
 
     function showError(message) {
-        document.querySelector('.friends-container').innerHTML = `<p>Error: ${message}</p>`;
+        document.querySelector('.friends-container').innerHTML = `<p>Error: ${escapeHtml(message)}</p>`;
     }
 
     function renderFriend(friend) {
@@ -25,8 +26,8 @@
                         <div class="user-picture">
                             <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="">
                         </div>
-                        <p>${friend.nickname}</p>
-                        <span class="pl-team">${friend.favorite_team ? `<i class="ph ph-shield-star"></i>${friend.favorite_team}` : 'Sin equipo'}</span>
+                        <p>${escapeHtml(friend.nickname)}</p>
+                        <span class="pl-team">${friend.favorite_team ? `<i class="ph ph-shield-star"></i>${escapeHtml(friend.favorite_team)}` : 'Sin equipo'}</span>
                     </div>
                 </div>
                 <div class="see-profile">
@@ -55,7 +56,7 @@
                         <div class="user-picture">
                             <img src="src/public/Logos/proevolutionsoccer-fulllogo.png" alt="">
                         </div>
-                        <p>${user.nickname}</p>
+                        <p>${escapeHtml(user.nickname)}</p>
                     </div>
                 </div>
                 <div class="see-profile">
@@ -106,29 +107,29 @@
             }
         } catch (error) {
             console.error('Error al buscar usuarios:', error);
-            alert('Error al buscar usuarios');
+            alert(`Error al buscar usuarios: ${error.message || 'intentá de nuevo.'}`);
         }
     }
 
     async function sendFriendRequest(userId) {
         try {
             await api.friends.sendFriendRequest(userId);
-            alert('Solicitud de amistad enviada');
+            alert('Solicitud de amistad enviada.');
             loadFriends();
         } catch (error) {
             console.error('Error al enviar solicitud:', error);
-            alert('Error al enviar solicitud de amistad');
+            alert(`Error al enviar la solicitud: ${error.message || 'intentá de nuevo.'}`);
         }
     }
 
     async function acceptFriendRequest(userId) {
         try {
             await api.friends.acceptFriendRequest(userId);
-            alert('Solicitud aceptada');
+            alert('Solicitud aceptada.');
             loadFriends();
         } catch (error) {
             console.error('Error al aceptar solicitud:', error);
-            alert('Error al aceptar solicitud');
+            alert(`Error al aceptar la solicitud: ${error.message || 'intentá de nuevo.'}`);
         }
     }
 
@@ -137,11 +138,11 @@
 
         try {
             await api.friends.deleteFriend(userId);
-            alert('Amigo eliminado');
+            alert('Amigo eliminado.');
             loadFriends();
         } catch (error) {
             console.error('Error al eliminar amigo:', error);
-            alert('Error al eliminar amigo');
+            alert(`Error al eliminar al amigo: ${error.message || 'intentá de nuevo.'}`);
         }
     }
 
@@ -217,7 +218,7 @@
             if (input) {
                 input.select();
                 document.execCommand('copy');
-                alert('Enlace copiado al portapapeles');
+                alert('Enlace copiado.');
             }
         });
     }

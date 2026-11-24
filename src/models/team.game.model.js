@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 const getTeamsByLeagueAndGame = async (gameId, leagueId) => {
     const query = `
-        SELECT tg.id, t.name
+        SELECT tg.id, t.name, t.logo_url
         FROM teams t
         INNER JOIN teams_games tg
         ON t.id = tg.team_id

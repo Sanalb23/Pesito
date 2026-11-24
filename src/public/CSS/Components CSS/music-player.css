@@ -1,0 +1,251 @@
+/* MODAL DE MUSICA */
+.music-modal {
+    position: relative;
+    width: 500px;
+    max-width: calc(100vw - 24px);
+    height: 560px;
+    max-height: 85vh;
+    padding: 30px;
+    background-color: rgb(31, 31, 31);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    border-radius: 20px;
+    z-index: 1;
+    box-sizing: border-box;
+}
+
+.music-modal-title {
+    width: 100%;
+    font-family: 'Montserrat';
+    color: white;
+}
+
+.music-modal-title span {
+    color: yellow;
+}
+
+/* REPRODUCTOR ACTUAL */
+.mp-player {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding: 15px;
+    background-color: rgb(45, 45, 45);
+    border-radius: 15px;
+}
+
+.mp-now-playing {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.mp-cover {
+    width: 55px;
+    height: 55px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background-color: rgb(70, 70, 68);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: yellow;
+    font-size: 28px;
+}
+
+.mp-track-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.mp-track-info strong {
+    font-family: 'Montserrat', sans-serif;
+    color: white;
+    font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* BARRA DE IGUALACION (solo se anima reproduciendo) */
+.mp-eq {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 14px;
+}
+
+.mp-eq span {
+    width: 3px;
+    height: 4px;
+    background-color: rgb(120, 120, 120);
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+
+.mp-eq.is-playing span {
+    background-color: yellow;
+    animation: mp-eq-bounce 0.8s ease-in-out infinite;
+}
+
+.mp-eq.is-playing span:nth-child(2) { animation-delay: 0.15s; }
+.mp-eq.is-playing span:nth-child(3) { animation-delay: 0.3s; }
+.mp-eq.is-playing span:nth-child(4) { animation-delay: 0.45s; }
+
+@keyframes mp-eq-bounce {
+    0%, 100% { height: 4px; }
+    50% { height: 14px; }
+}
+
+/* PROGRESO */
+.mp-progress {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mp-time {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 11px;
+    color: rgb(200, 200, 200);
+    min-width: 32px;
+    text-align: center;
+}
+
+.mp-progress-bar {
+    flex: 1;
+    height: 6px;
+    background-color: rgb(70, 70, 68);
+    border-radius: 10px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.mp-progress-fill {
+    height: 100%;
+    width: 0%;
+    background-color: yellow;
+    border-radius: 10px;
+    transition: width 0.4s linear;
+}
+
+/* CONTROLES */
+.mp-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+}
+
+.mp-control-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 26px;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 50%;
+    transition: color 0.3s ease, box-shadow 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mp-control-btn:hover {
+    color: yellow;
+}
+
+.mp-play-btn {
+    font-size: 38px;
+    color: yellow;
+}
+
+.mp-play-btn:hover {
+    box-shadow: 0 0 15px yellow;
+}
+
+/* LISTA DE CANCIONES */
+.mp-track-list {
+    width: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 5px;
+}
+
+.mp-track-row {
+    width: 100%;
+    min-height: 55px;
+    background-color: rgb(70, 70, 68);
+    border: none;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-family: 'Montserrat', sans-serif;
+    flex-shrink: 0;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.mp-track-row:hover {
+    background-color: rgb(85, 85, 82);
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.4);
+}
+
+.mp-track-row.is-active {
+    background-color: rgb(90, 90, 60);
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.5);
+}
+
+.mp-row-icon {
+    color: rgb(200, 200, 200);
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.mp-track-row.is-active .mp-row-icon {
+    color: yellow;
+}
+
+.mp-row-title {
+    flex: 1;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.mp-row-duration {
+    color: rgb(200, 200, 200);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+/* PANTALLAS CHICAS */
+@media (max-width: 768px) {
+    .music-modal {
+        max-height: calc(100vh - 70px - 24px);
+        margin-bottom: 70px;
+    }
+}
+
+@media (max-width: 480px) {
+    .music-modal {
+        padding: 20px;
+        gap: 14px;
+    }
+}

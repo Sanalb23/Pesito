@@ -9,7 +9,7 @@ const {
     updateUserData
 } = require('../models/user.model');
 
-const { parseId } = require('../utils/validators');
+const { parseId, isValidPassword, PASSWORD_ERROR_MESSAGE } = require('../utils/validators');
 const { clearAuthCookies } = require('../utils/cookies');
 
 const searchByNickname = async (req, res) => {
@@ -171,8 +171,8 @@ const changePassword = async (req, res) => {
             return res.status(400).json({ error: "MISSING_FIELDS", message: "Debes ingresar la contraseña actual y la nueva contraseña" });
         }
 
-        if (newPassword.length < 8 || newPassword.length > 12) {
-            return res.status(400).json({ error: "INVALID_PASSWORD", message: "La contraseña debe tener entre 8 y 12 caracteres" });
+        if (!isValidPassword(newPassword)) {
+            return res.status(400).json({ error: "INVALID_PASSWORD", message: PASSWORD_ERROR_MESSAGE });
         }
 
         const user = await findPasswordById(userId);

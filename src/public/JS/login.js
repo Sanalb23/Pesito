@@ -21,11 +21,12 @@ if (loginForm) {
                 alert("¡Login exitoso! Entrando al sistema...");
                 window.location.href = "main.html"; // Cambialo por la ruta de tu menú principal cuando lo conectes
             } else {
-                alert("Error: " + resultado.message);
+                const message = resultado.message || 'No se pudo iniciar sesión.';
+                alert(response.status >= 500 ? `Error: ${message}` : message);
             }
         } catch (error) {
             console.error("Error de conexión:", error);
-            alert("No se pudo conectar con el servidor. (Recordá que Render puede tardar unos segundos en despertar si estaba inactivo).");
+            alert("Error: No se pudo conectar con el servidor. (Recordá que Render puede tardar unos segundos en despertar si estaba inactivo).");
         }
     });
 }
@@ -43,7 +44,12 @@ if (registerForm) {
 
         // Validación casera para asegurarnos de que las contraseñas coincidan
         if (password !== confirmPassword) {
-            alert("Las contraseñas no coinciden.");
+            alert("Las contraseñas no coinciden. Revisá que ambas sean iguales.");
+            return;
+        }
+
+        if (typeof window.registerPasswordRequirementsMet === 'function' && !window.registerPasswordRequirementsMet()) {
+            alert("La contraseña no cumple todos los requisitos. Revisá la lista debajo del campo.");
             return;
         }
 
@@ -61,11 +67,12 @@ if (registerForm) {
                 alert("¡Cuenta creada y sesión iniciada con éxito!");
                 window.location.href = "main.html";
             } else {
-                alert("Error al registrarse: " + resultado.message);
+                const message = resultado.message || 'No se pudo crear la cuenta.';
+                alert(response.status >= 500 ? `Error: ${message}` : message);
             }
         } catch (error) {
             console.error("Error de conexión:", error);
-            alert("No se pudo conectar con el servidor.");
+            alert("Error: No se pudo conectar con el servidor.");
         }
     });
 }

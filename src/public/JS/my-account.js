@@ -72,7 +72,7 @@
         const confirmPassword = document.querySelector('#ma-confirm-password').value;
 
         if (!currentPassword || !newPassword || !confirmPassword) {
-            alert('Por favor completa todos los campos.');
+            alert('Completa todos los campos para continuar.');
             return;
         }
 
@@ -81,21 +81,24 @@
             return;
         }
 
-        if (newPassword.length < 6) {
-            alert('La contraseña debe tener al menos 6 caracteres.');
+        const passwordRules = window.pesitoPasswordRules;
+        if (passwordRules && !passwordRules.isValid(newPassword)) {
+            alert(passwordRules.message);
             return;
         }
 
         try {
             await api.users.changePassword({
-                current_password: currentPassword,
-                new_password: newPassword
+                currentPassword: currentPassword,
+                newPassword: newPassword
             });
             alert('Contraseña actualizada correctamente.');
             document.querySelector('#ma-password-form').reset();
         } catch (error) {
             console.error('Error al cambiar contraseña:', error);
-            alert('No se pudo cambiar la contraseña. Verifica que tu contraseña actual sea correcta.');
+            const isSystemError = !error.status || error.status >= 500;
+            const fallback = 'No se pudo cambiar la contraseña. Verifica que tu contraseña actual sea correcta.';
+            alert(isSystemError ? `Error: ${error.message || fallback}` : (error.message || fallback));
         }
     }
 
@@ -106,7 +109,7 @@
             const doubleConfirmed = confirm('Esta es tu última oportunidad. ¿Realmente quieres eliminar tu cuenta?');
 
             if (doubleConfirmed) {
-                alert('Función de eliminar cuenta pendiente de implementación en el backend.');
+                alert('La eliminación de cuenta todavía no está disponible.');
             }
         }
     }

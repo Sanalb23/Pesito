@@ -1,4 +1,10 @@
 (function () {
+    window.pesitoEscapeHtml = function (value) {
+        const div = document.createElement('div');
+        div.textContent = value ?? '';
+        return div.innerHTML;
+    };
+
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
     const API_BASE = 'https://pesito-ejyz.onrender.com';
@@ -30,11 +36,17 @@
         }
 
         if (!response.ok) {
-            throw new Error(result.message || `Error del servidor (${response.status})`);
+            const error = new Error(result.message || `Error del servidor (${response.status})`);
+            error.status = response.status;
+            throw error;
         }
 
         return result.data !== undefined ? result.data : result;
     }
+
+    const auth = {
+        logout: () => request('/auth/logout', { method: 'POST' })
+    };
 
     const session = {
         getCurrentUser: () => request('/users/me')
@@ -46,7 +58,7 @@
         getMyStats: () => request('/users/me/stats'),
         getUserStats: (userId) => request(`/users/${userId}/stats`),
         getMyMatches: () => request('/users/me/matches'),
-        changePassword: (data) => request('/users/me/password', { method: 'PATCH', body: data }),
+        changePassword: (data) => request('/users/me/change-password', { method: 'PATCH', body: data }),
         deleteAccount: () => request('/users/me', { method: 'DELETE' })
     };
 
@@ -103,6 +115,7 @@
     };
 
     window.pesitoApi = {
+        auth,
         session,
         users,
         friends,

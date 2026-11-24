@@ -76,6 +76,13 @@
                                 <div class="user-password-inputs">
                                     <label for="regPassword">Contraseña:</label>
                                     <input type="password" id="regPassword" required>
+                                    <ul class="password-requirements" id="password-requirements">
+                                        <li data-rule="length">Entre 8 y 12 caracteres</li>
+                                        <li data-rule="uppercase">Al menos una mayúscula</li>
+                                        <li data-rule="number">Al menos un número</li>
+                                        <li data-rule="symbol">Al menos un símbolo</li>
+                                        <li data-rule="no-spaces">Sin espacios</li>
+                                    </ul>
                                 </div>
                                 <div class="verify-password-inputs">
                                     <label for="regConfirmPassword">Vuelve a ingresar la contraseña:</label>
@@ -97,6 +104,7 @@
     </main>
 
     <script src="src/public/JS/transition.js"></script>
+    <script src="src/public/JS/verify-forms/user-register.js"></script>
     <script src="src/public/JS/login.js"></script>
 </body>
 </html>

@@ -11,6 +11,8 @@ const myAccountMenu = document.querySelector('.my-account-menu');
 const myAccountContent = document.querySelector('.my-account-content');
 const myMatchesMenu = document.querySelector('.my-matches-menu');
 const myMatchesContent = document.querySelector('.my-matches-content');
+const leaguesTeamsMenu = document.querySelector('.leagues-teams-menu');
+const leaguesTeamsContent = document.querySelector('.leagues-teams-content');
 const friendsBackdrop = document.querySelector('.modal-backdrop');
 
 const openMatchRegisterButton = document.querySelector('#match-register');
@@ -27,6 +29,9 @@ const openUserStatsButtonMobile = document.querySelector('#user-stats-mobile');
 const openFriendsButtonMobile = document.querySelector('#user-friends-mobile');
 const openMyAccountButtonMobile = document.querySelector('#my-account-mobile');
 const openFriendsButton = document.getElementById('user-friends');
+const openLeaguesButton = document.getElementById('leagues-and-teams');
+const backFromLeaguesButton = document.getElementById('back-from-leagues');
+const logOutButton = document.getElementById('log-out');
 const closeFriendsButton = document.getElementById('close-friends-modal');
 
 
@@ -48,6 +53,11 @@ function showContainer(container) {
 }
 
 function switchSections(visibleContent, visibleContainer, nextContent, nextContainer) {
+    // Cierra secciones basadas en :target (ej: notificaciones) sin disparar hashchange
+    if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
     startFadeOut(visibleContent);
 
     setTimeout(() => {
@@ -104,6 +114,31 @@ function goBackFromMatches() {
 }
 
 
+function goToLeagues(event) {
+    event.preventDefault();
+    switchSections(mainMenu, mainMenu, leaguesTeamsContent, leaguesTeamsMenu);
+}
+
+function goBackFromLeagues() {
+    switchSections(leaguesTeamsContent, leaguesTeamsMenu, mainMenu, mainMenu);
+}
+
+async function logOut(event) {
+    event.preventDefault();
+
+    try {
+        await window.pesitoApi.auth.logout();
+    } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+    } finally {
+        if (typeof stopMusicPlayback === 'function') {
+            stopMusicPlayback();
+        }
+        window.location.href = 'index.html';
+    }
+}
+
+
 openMatchRegisterButton.addEventListener('click', goToMatchRegister);
 
 if (backToMenuButton) {
@@ -151,6 +186,18 @@ if (openFriendsButtonMobile) {
 
 if (openMyAccountButtonMobile) {
     openMyAccountButtonMobile.addEventListener('click', goToMyAccount);
+}
+
+if (openLeaguesButton) {
+    openLeaguesButton.addEventListener('click', goToLeagues);
+}
+
+if (backFromLeaguesButton) {
+    backFromLeaguesButton.addEventListener('click', goBackFromLeagues);
+}
+
+if (logOutButton) {
+    logOutButton.addEventListener('click', logOut);
 }
 
 openFriendsButton.addEventListener('click', openFriendsModal);

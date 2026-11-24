@@ -1,5 +1,6 @@
 (function () {
     const api = window.pesitoApi;
+    const escapeHtml = window.pesitoEscapeHtml;
 
     const state = {
         matches: [],
@@ -86,11 +87,11 @@
             <div class="mm-match-result mm-${result}">${resultIcon}</div>
             <div class="mm-match-info">
                 <div class="mm-match-teams">
-                    ${match.home_team_name} <strong>${match.home_goals} - ${match.away_goals}</strong> ${match.away_team_name}
+                    ${escapeHtml(match.home_team_name)} <strong>${match.home_goals} - ${match.away_goals}</strong> ${escapeHtml(match.away_team_name)}
                 </div>
                 <div class="mm-match-details">
-                    <span><i class="ph ph-game-controller"></i> ${match.game_name}</span>
-                    ${match.rival_name ? `<span><i class="ph ph-user"></i> vs ${match.rival_name}</span>` : ''}
+                    <span><i class="ph ph-game-controller"></i> ${escapeHtml(match.game_name)}</span>
+                    ${match.rival_name ? `<span><i class="ph ph-user"></i> vs ${escapeHtml(match.rival_name)}</span>` : ''}
                 </div>
             </div>
             <div class="mm-match-date">

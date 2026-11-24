@@ -12,6 +12,9 @@
     <link rel="stylesheet" href="src/public/CSS/Components CSS/user-stats.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/my-account.css">
     <link rel="stylesheet" href="src/public/CSS/Components CSS/my-matches.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/music-player.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/leagues-teams.css">
+    <link rel="stylesheet" href="src/public/CSS/Components CSS/notifications.css">
     <link rel="icon" type="image/png" href="src/public/Icons/proevolutionsoccerlogo.ico">
     <link href="https://cdn.jsdelivr.net/npm/phosphor-icons@1.4.2/src/css/icons.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,8 +37,8 @@
 
         <nav class="desktop-nav">
             <a href="" id="my-account" title="Mi cuenta"><i class="ph ph-user-circle"></i></a>
-            <a href="" title="Musica"><i class="ph ph-music-note"></i></a>
-            <a href="" title="Notificaciones"><i class="ph ph-bell"></i></a>
+            <a href="" id="music-button" title="Musica"><i class="ph ph-music-note"></i></a>
+            <a href="#notifications-menu" title="Notificaciones"><i class="ph ph-bell"></i><span class="nav-badge" hidden>0</span></a>
         </nav>
     </header>
 
@@ -49,6 +52,7 @@
                 class="ph ph-chart-bar"></i><span>Estadísticas</span></a>
         <a href="" id="user-friends-mobile" title="Mis amigos"><i class="ph ph-users"></i><span>Amigos</span></a>
         <a href="" id="my-account-mobile" title="Mi cuenta"><i class="ph ph-user-circle"></i><span>Cuenta</span></a>
+        <a href="#notifications-menu" class="mobile-bell" title="Notificaciones"><i class="ph ph-bell"></i><span class="nav-badge" hidden>0</span></a>
     </nav>
 
     <main>
@@ -653,6 +657,100 @@
                     </div>
                 </div>
             </div>
+
+            <!-- EQUIPOS Y LIGAS -->
+            <div class="leagues-teams-menu">
+                <div class="leagues-teams-content">
+                    <button type="button" class="menu-buttons back-button" id="back-from-leagues"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver al menú</button>
+
+                    <!-- CARGANDO -->
+                    <section class="lt-card lt-card-center" id="lt-loading" role="status" aria-live="polite" hidden>
+                        <div class="lt-spinner"></div>
+                        <h2>Cargando <span>equipos y ligas</span></h2>
+                    </section>
+
+                    <!-- ERROR -->
+                    <section class="lt-card lt-card-center" id="lt-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle lt-error-icon"></i>
+                        <h2>No se pudieron <span>cargar</span></h2>
+                        <p id="lt-error-message">Hubo un problema al traer los equipos y ligas. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="lt-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- SIN DATOS -->
+                    <section class="lt-card lt-card-center" id="lt-empty" hidden>
+                        <i class="ph ph-shield-checkered lt-empty-icon"></i>
+                        <h2>Todavía no hay <span>datos</span></h2>
+                        <p>No encontramos equipos ni ligas para este juego.</p>
+                    </section>
+
+                    <!-- CONTENIDO -->
+                    <div class="lt-dashboard" id="lt-dashboard" hidden>
+                        <section class="lt-card lt-game-picker">
+                            <label class="lt-field">
+                                <span>Juego</span>
+                                <select id="lt-game-select"></select>
+                            </label>
+                        </section>
+
+                        <div class="lt-leagues" id="lt-leagues-container">
+                            <!-- Las ligas y equipos se cargan dinámicamente aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NOTIFICACIONES -->
+            <div class="notifications-menu" id="notifications-menu">
+                <div class="notifications-content">
+                    <a href="#" class="menu-buttons back-button" id="nt-back-button"><i
+                            class="ph ph-arrow-left"></i>&nbsp;Volver</a>
+
+                    <section class="nt-card nt-head">
+                        <div class="nt-head-text">
+                            <h2>Notificaciones</h2>
+                            <span class="nt-unread-count"><strong>0</strong> sin leer</span>
+                        </div>
+                        <button type="button" class="nt-link-button" id="nt-mark-all-read">Marcar todas como
+                            leídas</button>
+                    </section>
+
+                    <!-- CARGANDO -->
+                    <section class="nt-card nt-card-center" id="nt-loading" role="status" aria-live="polite" hidden>
+                        <div class="nt-spinner"></div>
+                        <h2>Cargando <span>notificaciones</span></h2>
+                    </section>
+
+                    <!-- ERROR -->
+                    <section class="nt-card nt-card-center" id="nt-error" role="alert" hidden>
+                        <i class="ph ph-warning-circle nt-error-icon"></i>
+                        <h2>No se pudieron <span>cargar</span></h2>
+                        <p id="nt-error-message">Hubo un problema al traer tus notificaciones. Inténtalo de nuevo.</p>
+                        <button type="button" class="analize-button" id="nt-retry-button">Reintentar</button>
+                    </section>
+
+                    <!-- SIN NOTIFICACIONES -->
+                    <section class="nt-card nt-card-center" id="nt-empty" hidden>
+                        <i class="ph ph-bell-ringing nt-empty-icon"></i>
+                        <h2>No tienes <span>notificaciones</span></h2>
+                        <p>Cuando alguien te envíe una solicitud o confirmación, va a aparecer acá.</p>
+                    </section>
+
+                    <!-- LISTA DE NOTIFICACIONES -->
+                    <section class="nt-card nt-dashboard" id="nt-dashboard" hidden>
+                        <input type="radio" class="nt-filter-input" name="nt-filter" id="nt-filter-all" checked>
+                        <input type="radio" class="nt-filter-input" name="nt-filter" id="nt-filter-matches">
+                        <input type="radio" class="nt-filter-input" name="nt-filter" id="nt-filter-friends">
+                        <div class="nt-filters">
+                            <label for="nt-filter-all">Todas</label>
+                            <label for="nt-filter-matches">Partidos</label>
+                            <label for="nt-filter-friends">Amigos</label>
+                        </div>
+                        <ul class="nt-list" id="nt-list"></ul>
+                    </section>
+                </div>
+            </div>
         </section>
     </main>
 
@@ -703,6 +801,53 @@
         </div>
     </div>
 
+    <!-- MODAL DE MUSICA -->
+    <div class="modal-backdrop hidden" id="music-backdrop">
+        <div class="music-modal">
+            <button type="button" class="menu-buttons back-button" id="close-music-modal"><i
+                    class="ph ph-arrow-left"></i>&nbsp;Volver</button>
+            <div class="music-modal-title">
+                <h2>Soundtrack <span>Pesito</span></h2>
+            </div>
+
+            <!-- Reproductor actual -->
+            <div class="mp-player">
+                <div class="mp-now-playing">
+                    <div class="mp-cover">
+                        <i class="ph ph-music-note"></i>
+                    </div>
+                    <div class="mp-track-info">
+                        <strong id="np-title">Selecciona una canción</strong>
+                        <div class="mp-eq" id="np-eq" aria-hidden="true">
+                            <span></span><span></span><span></span><span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mp-progress">
+                    <span class="mp-time" id="current-time">0:00</span>
+                    <div class="mp-progress-bar" id="progress-bar" role="slider" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" tabindex="0">
+                        <div class="mp-progress-fill" id="progress-fill"></div>
+                    </div>
+                    <span class="mp-time" id="total-time">0:00</span>
+                </div>
+
+                <div class="mp-controls">
+                    <button type="button" class="mp-control-btn" id="btn-prev" title="Anterior"><i
+                            class="ph ph-skip-back"></i></button>
+                    <button type="button" class="mp-control-btn mp-play-btn" id="btn-play" title="Reproducir"><i
+                            class="ph ph-play"></i></button>
+                    <button type="button" class="mp-control-btn" id="btn-next" title="Siguiente"><i
+                            class="ph ph-skip-forward"></i></button>
+                </div>
+            </div>
+
+            <!-- Lista de canciones -->
+            <div class="mp-track-list" id="track-list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
     <script src="src/public/JS/pesito-api.js"></script>
     <script src="src/public/JS/notifications.js"></script>
     <script src="src/public/JS/friends.js"></script>
@@ -712,12 +857,11 @@
     <script src="src/public/JS/user-stats.js"></script>
     <script src="src/public/JS/my-account.js"></script>
     <script src="src/public/JS/my-matches.js"></script>
-    <script src="src/public/JS/notifications.js"></script>
+    <script src="src/public/JS/verify-forms/user-register.js"></script>
     <script src="src/public/JS/soundtrack.js"></script>
+    <script src="src/public/JS/leagues-teams.js"></script>
     <script src="src/public/JS/transition.js"></script>
     <script src="src/public/JS/user-profile.js"></script>
-    <script src="src/public/JS/user-stats.js"></script>
-    <script src="src/public/JS/user-stats-calc.js"></script>
 </body>
 
 </html>

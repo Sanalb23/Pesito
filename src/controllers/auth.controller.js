@@ -3,13 +3,14 @@ const usersModel = require('../models/user.model');
 const { createToken, createRefreshToken, verifyRefreshToken } = require('../middlewares/auth');
 
 const { cookieOptions, clearAuthCookies } = require('../utils/cookies');
+const { isValidPassword, PASSWORD_ERROR_MESSAGE } = require('../utils/validators');
 
 const register = async (req, res) => {
     try {
         const { nickname, email, password } = req.body;
 
-        if (password.length < 8 || password.length > 12) {
-            return res.status(400).json({ error: "INVALID_PASSWORD", message: "La contraseña debe tener entre 8 y 12 caracteres" });
+        if (!isValidPassword(password)) {
+            return res.status(400).json({ error: "INVALID_PASSWORD", message: PASSWORD_ERROR_MESSAGE });
         }
 
         if (nickname.includes(' ')) {
